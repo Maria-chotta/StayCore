@@ -1,0 +1,19 @@
+.housekeeping-root { padding: 16px; }
+.housekeeping-header { display:flex; align-items:center; gap:12px; }
+.housekeeping-count { font-size: 14px; color: var(--muted); }
+.housekeeping-filters-row { flex-wrap:wrap; }
+.housekeeping-table { width:100%; border-collapse: collapse; }
+.housekeeping-table th, .housekeeping-table td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); }
+.housekeeping-table tr[role="button"]{ cursor:pointer; }
+.housekeeping-table tr[role="button"]:hover { background: var(--hover); }
+.housekeeping-table thead { display:none; }
+.housekeeping-table, .housekeeping-table tbody, .housekeeping-table tr, .housekeeping-table td { display:block; width:100%; }
+.housekeeping-table tr { margin-bottom:12px; }
+.housekeeping-table td { padding:8px; border-bottom: none; }
+.housekeeping-table td::before { font-weight:600; display:inline-block; width:120px; }
+.housekeeping-table td[data-label="Task"]::before { content: "Task: "; }
+.housekeeping-table td[data-label="Room"]::before { content: "Room: "; }
+.housekeeping-table td[data-label="Scheduled"]::before { content: "Scheduled: "; }
+.housekeeping-table td[data-label="Assigned"]::before { content: "Assigned: "; }
+.housekeeping-table td[data-label="Priority"]::before { content: "Priority: "; }
+.housekeeping-table td[data-label="Status"]::before { content: "Status: "; }

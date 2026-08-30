@@ -1,0 +1,29 @@
+.guests-root { padding: 16px; }
+.guests-header { display:flex; align-items:center; gap:12px; }
+.guests-count { font-size: 14px; color: var(--muted); }
+.guests-filters-row { flex-wrap:wrap; }
+.guests-table { width:100%; border-collapse: collapse; }
+.guests-table th, .guests-table td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); }
+.guests-table tr[role="button"]{ cursor:pointer; }
+.guests-table tr[role="button"]:hover { background: var(--hover); }
+.guest-card { border:1px solid var(--border); border-radius:8px; padding:16px; max-width:800px; }
+.guest-card-header { display:flex; justify-content:space-between; align-items:center; }
+.guest-card-body { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+.guest-row { display:flex; gap:8px; }
+.badge { padding:4px 8px; border-radius:6px; background:var(--muted); color:var(--bg); }
+.badge-active { background: var(--success); }
+
+/* Responsive */
+@media (max-width: 800px) {
+  .guests-table thead { display:none; }
+  .guests-table, .guests-table tbody, .guests-table tr, .guests-table td { display:block; width:100%; }
+  .guests-table tr { margin-bottom:12px; }
+  .guests-table td { padding:8px; border-bottom: none; }
+  .guests-table td::before { font-weight:600; display:inline-block; width:120px; }
+  .guests-table td[data-label="Guest"]::before { content: "Guest: "; }
+  .guests-table td[data-label="Phone"]::before { content: "Phone: "; }
+  .guests-table td[data-label="Email"]::before { content: "Email: "; }
+  .guests-table td[data-label="Nationality"]::before { content: "Nationality: "; }
+  .guests-table td[data-label="Identification"]::before { content: "ID: "; }
+  .guests-table td[data-label="Status"]::before { content: "Status: "; }
+}

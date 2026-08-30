@@ -1,0 +1,31 @@
+<svg width="800" height="520" viewBox="0 0 800 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dashboard mockup">
+  <rect width="100%" height="100%" rx="16" fill="#f7f8fb" />
+  <rect x="32" y="28" width="320" height="56" rx="8" fill="#ffffff" stroke="#e6e7eb" />
+  <rect x="32" y="100" width="720" height="36" rx="6" fill="#ffffff" stroke="#e6e7eb" />
+
+  <!-- left column cards -->
+  <rect x="32" y="156" width="220" height="120" rx="10" fill="#fff" stroke="#e6e7eb" />
+  <rect x="32" y="288" width="220" height="120" rx="10" fill="#fff" stroke="#e6e7eb" />
+
+  <!-- right large panel -->
+  <rect x="276" y="156" width="476" height="252" rx="12" fill="#fff" stroke="#e6e7eb" />
+
+  <!-- chart lines -->
+  <polyline points="300,320 360,280 420,300 480,240 540,260 640,200" fill="none" stroke="#ff6a00" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- small UI elements -->
+  <rect x="300" y="184" width="120" height="14" rx="6" fill="#f1f3f6" />
+  <rect x="430" y="184" width="240" height="14" rx="6" fill="#f1f3f6" />
+
+  <g transform="translate(48,168)" fill="#dfe3ea">
+    <rect x="0" y="0" width="60" height="12" rx="6" />
+    <rect x="0" y="24" width="160" height="10" rx="5" />
+  </g>
+
+  <g transform="translate(48,300)" fill="#dfe3ea">
+    <rect x="0" y="0" width="180" height="12" rx="6" />
+    <rect x="0" y="24" width="120" height="10" rx="5" />
+  </g>
+
+  <text x="56" y="64" font-family="Inter, Arial, sans-serif" font-size="18" fill="#6b6375">Dashboard</text>
+</svg>

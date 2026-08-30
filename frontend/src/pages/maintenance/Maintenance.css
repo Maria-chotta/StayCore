@@ -1,0 +1,19 @@
+.maintenance-root { padding: 16px; }
+.maintenance-header { display:flex; align-items:center; gap:12px; }
+.maintenance-count { font-size: 14px; color: var(--muted); }
+.maintenance-filters-row { flex-wrap:wrap; }
+.maintenance-table { width:100%; border-collapse: collapse; }
+.maintenance-table th, .maintenance-table td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); }
+.maintenance-table tr[role="button"]{ cursor:pointer; }
+.maintenance-table tr[role="button"]:hover { background: var(--hover); }
+.maintenance-table thead { display:none; }
+.maintenance-table, .maintenance-table tbody, .maintenance-table tr, .maintenance-table td { display:block; width:100%; }
+.maintenance-table tr { margin-bottom:12px; }
+.maintenance-table td { padding:8px; border-bottom: none; }
+.maintenance-table td::before { font-weight:600; display:inline-block; width:120px; }
+.maintenance-table td[data-label="Title"]::before { content: "Title: "; }
+.maintenance-table td[data-label="Room"]::before { content: "Room: "; }
+.maintenance-table td[data-label="Reported"]::before { content: "Reported: "; }
+.maintenance-table td[data-label="Assigned"]::before { content: "Assigned: "; }
+.maintenance-table td[data-label="Priority"]::before { content: "Priority: "; }
+.maintenance-table td[data-label="Status"]::before { content: "Status: "; }

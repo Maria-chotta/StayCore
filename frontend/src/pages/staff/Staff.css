@@ -1,0 +1,441 @@
+/* =========================================
+   STAFF MANAGEMENT
+========================================= */
+
+.staff-root {
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   HEADERS
+========================================= */
+
+.staff-header,
+.staff-detail-header,
+.staff-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.staff-header h1,
+.staff-form-header h1,
+.staff-root > h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.staff-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #111827;
+  color: white;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: #f9fafb;
+}
+
+.btn-ghost.small {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.staff-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.staff-toolbar input,
+.staff-toolbar select {
+  min-height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: white;
+  color: #111827;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.staff-toolbar input {
+  min-width: 260px;
+}
+
+.staff-toolbar select {
+  min-width: 150px;
+}
+
+.staff-toolbar input:focus,
+.staff-toolbar select:focus,
+.staff-form input:focus,
+.staff-form select:focus {
+  outline: none;
+  border-color: #111827;
+}
+
+/* =========================================
+   LOADING / ERROR / EMPTY
+========================================= */
+
+.staff-loading {
+  padding: 30px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.staff-error {
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.staff-error strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.staff-error .btn-ghost {
+  margin-top: 12px;
+}
+
+.staff-empty {
+  padding: 50px 20px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.staff-empty h3 {
+  margin: 0 0 8px;
+}
+
+.staff-empty p {
+  margin: 0;
+  color: #6b7280;
+}
+
+/* =========================================
+   COUNT
+========================================= */
+
+.staff-count {
+  margin-bottom: 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* =========================================
+   TABLE
+========================================= */
+
+.staff-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.staff-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.staff-table th,
+.staff-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.staff-table th {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+}
+
+.staff-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.staff-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================
+   ROLE
+========================================= */
+
+.staff-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =========================================
+   STATUS
+========================================= */
+
+.staff-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.staff-status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.staff-status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================
+   FORM
+========================================= */
+
+.staff-form {
+  max-width: 900px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.staff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.staff-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.staff-form input,
+.staff-form select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.staff-form small {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.staff-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+  margin-top: 10px;
+}
+
+.staff-checkbox input {
+  width: 18px;
+  min-height: 18px;
+}
+
+.staff-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* =========================================
+   FIELD ERRORS
+========================================= */
+
+.staff-field-error {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* =========================================
+   DETAIL PAGE
+========================================= */
+
+.staff-detail-header {
+  justify-content: flex-start;
+}
+
+.staff-detail-header .btn {
+  margin-left: auto;
+}
+
+.staff-detail-card {
+  max-width: 900px;
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.staff-detail-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.staff-detail-title h2 {
+  margin: 0 0 5px;
+  font-size: 22px;
+}
+
+.staff-detail-title p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.staff-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.staff-detail-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.staff-detail-grid strong {
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.staff-detail-grid span {
+  color: #111827;
+  font-size: 14px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 768px) {
+  .staff-root {
+    padding: 16px;
+  }
+
+  .staff-header,
+  .staff-detail-header,
+  .staff-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .staff-detail-header .btn {
+    margin-left: 0;
+  }
+
+  .staff-toolbar {
+    flex-direction: column;
+  }
+
+  .staff-toolbar input,
+  .staff-toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .staff-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-form-actions {
+    flex-direction: column;
+  }
+
+  .staff-form-actions button {
+    width: 100%;
+  }
+}
