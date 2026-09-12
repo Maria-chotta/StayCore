@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
 from .models import MaintenanceRequest
@@ -27,10 +28,14 @@ class MaintenanceRequestViewSet(viewsets.ModelViewSet):
             "assigned_to",
         ).filter(hotel_id__in=hotel_ids)
 
+        hotel = self.request.user.resolve_hotel_context(self.request)
         status = self.request.query_params.get("status")
         priority = self.request.query_params.get("priority")
         room = self.request.query_params.get("room")
         assigned_to = self.request.query_params.get("assigned_to")
+
+        if hotel is not None:
+            queryset = queryset.filter(hotel_id=hotel)
 
         if status:
             queryset = queryset.filter(status=status)

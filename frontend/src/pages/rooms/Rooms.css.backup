@@ -1,0 +1,62 @@
+.rooms-root {
+  padding: 16px;
+}
+
+.rooms-header { display:flex; align-items:baseline; justify-content:space-between }
+
+.rooms-filter select {
+  appearance: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.rooms-wrap { margin-top: 16px; overflow-x:auto }
+
+.rooms-table { width:100%; border-collapse:collapse }
+.rooms-table th, .rooms-table td { text-align:left; padding:8px 10px; border-bottom: 1px solid var(--border) }
+
+.rooms-loading, .rooms-empty, .rooms-error { margin-top: 12px; color: var(--muted, #6b7280) }
+
+/* Clickable row affordance */
+.rooms-table tr[role="button"] { cursor: pointer }
+.rooms-table tr[role="button"]:hover { background: rgba(15,15,15,0.02) }
+.rooms-table tr[role="button"]:focus { outline: 3px solid rgba(59,130,246,0.12); outline-offset: -1px }
+
+/* Room detail styles */
+.room-detail { margin-top: 12px; display:flex; flex-direction:column; gap:8px; max-width:720px }
+.room-row { padding:8px 0; border-bottom: 1px dashed rgba(0,0,0,0.04) }
+
+/* status pills */
+.room-pill { padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; color:#fff; display:inline-block }
+.room-pill-available { background:#16a34a }
+.room-pill-occupied { background:#ef4444 }
+.room-pill-dirty { background:#f97316 }
+.room-pill-cleaning { background:#f59e0b }
+.room-pill-maintenance { background:#7c3aed }
+.room-pill-out_of_order { background:#374151 }
+
+/* results count */
+.rooms-count { color: var(--muted, #6b7280); font-weight:600 }
+
+/* small responsive tweaks */
+@media (max-width: 640px) {
+  .rooms-filters-row { flex-direction: column }
+  .rooms-filters-row input, .rooms-filters-row select { width: 100% }
+}
+
+
+@media (max-width: 640px) {
+  .rooms-table, .rooms-table thead, .rooms-table tbody, .rooms-table th, .rooms-table td, .rooms-table tr { display:block }
+  .rooms-table thead { display:none }
+  .rooms-table tr { margin:0 0 12px 0; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg) }
+  .rooms-table td { padding:6px 0; display:flex; justify-content:space-between }
+  .rooms-table td::before { content: attr(data-label) ": "; font-weight:700; color:var(--muted, #6b7280); margin-right:8px }
+}

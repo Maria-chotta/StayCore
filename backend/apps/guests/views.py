@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Guest
@@ -28,12 +29,12 @@ class GuestViewSet(viewsets.ModelViewSet):
             hotel_id__in=hotel_ids
         )
 
-        hotel = self.request.query_params.get("hotel")
+        hotel = self.request.user.resolve_hotel_context(self.request)
         search = self.request.query_params.get("search")
         is_active = self.request.query_params.get("is_active")
 
         # Optional hotel filter.
-        if hotel:
+        if hotel is not None:
             queryset = queryset.filter(
                 hotel_id=hotel
             )

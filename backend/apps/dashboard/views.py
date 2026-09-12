@@ -28,12 +28,17 @@ class DashboardSummaryView(APIView):
     def get(self, request):
         today = date.today()
 
+        selected_hotel_id = request.user.resolve_hotel_context(request)
+
         hotel_ids = list(
             StaffMembership.objects.filter(
                 user=request.user,
                 is_active=True,
             ).values_list("hotel_id", flat=True)
         )
+
+        if selected_hotel_id is not None:
+            hotel_ids = [selected_hotel_id]
 
         if not hotel_ids:
             return Response(

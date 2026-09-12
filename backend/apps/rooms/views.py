@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Room, RoomType
@@ -19,11 +20,17 @@ class RoomTypeViewSet(viewsets.ModelViewSet):
             flat=True,
         )
 
-        return RoomType.objects.filter(
+        queryset = RoomType.objects.filter(
             rooms__hotel_id__in=hotel_ids
         ).distinct().order_by(
             "name"
         )
+
+        hotel_id = self.request.user.resolve_hotel_context(self.request)
+        if hotel_id is not None:
+            queryset = queryset.filter(rooms__hotel_id=hotel_id).distinct()
+
+        return queryset
 
 
 class RoomViewSet(viewsets.ModelViewSet):
@@ -46,11 +53,11 @@ class RoomViewSet(viewsets.ModelViewSet):
             hotel_id__in=hotel_ids
         )
 
-        hotel = self.request.query_params.get("hotel")
+        hotel = self.request.user.resolve_hotel_context(self.request)
         status = self.request.query_params.get("status")
         room_type = self.request.query_params.get("room_type")
 
-        if hotel:
+        if hotel is not None:
             queryset = queryset.filter(
                 hotel_id=hotel
             )

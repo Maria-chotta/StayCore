@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "../pages/auth/Login";
 
+import PropertyOnboarding from "../pages/properties/PropertyOnboarding";
+
 import Home from "../pages/home/Home";
 import Dashboard from "../pages/dashboard/Dashboard";
 
@@ -35,6 +37,7 @@ import FolioDetail from "../pages/billing/FolioDetail";
 import FolioForm from "../pages/billing/FolioForm";
 
 import Reports from "../pages/reports/Reports";
+import PortfolioOverview from "../pages/portfolio/PortfolioOverview";
 
 import Staff from "../pages/staff/Staff";
 import StaffForm from "../pages/staff/StaffForm";
@@ -80,6 +83,24 @@ function AppRoutes() {
         element={
           <ProtectedPage>
             <Dashboard />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/portfolio"
+        element={
+          <ProtectedPage>
+            <PortfolioOverview />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/properties/onboarding"
+        element={
+          <ProtectedPage>
+            <PropertyOnboarding />
           </ProtectedPage>
         }
       />

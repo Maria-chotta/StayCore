@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Folio, FolioItem, Payment
@@ -21,11 +22,17 @@ class FolioViewSet(viewsets.ModelViewSet):
             user=self.request.user,
             is_active=True,
         ).values_list("hotel_id", flat=True)
-        return Folio.objects.select_related(
+        queryset = Folio.objects.select_related(
             "reservation",
             "hotel",
             "guest",
         ).filter(hotel_id__in=hotel_ids)
+
+        hotel = self.request.user.resolve_hotel_context(self.request)
+        if hotel is not None:
+            queryset = queryset.filter(hotel_id=hotel)
+
+        return queryset
 
 
 class FolioItemViewSet(viewsets.ModelViewSet):
@@ -37,9 +44,15 @@ class FolioItemViewSet(viewsets.ModelViewSet):
             user=self.request.user,
             is_active=True,
         ).values_list("hotel_id", flat=True)
-        return FolioItem.objects.select_related(
+        queryset = FolioItem.objects.select_related(
             "folio",
         ).filter(folio__hotel_id__in=hotel_ids)
+
+        hotel = self.request.user.resolve_hotel_context(self.request)
+        if hotel is not None:
+            queryset = queryset.filter(folio__hotel_id=hotel)
+
+        return queryset
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -51,10 +64,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
             user=self.request.user,
             is_active=True,
         ).values_list("hotel_id", flat=True)
-        return Payment.objects.select_related(
+        queryset = Payment.objects.select_related(
             "folio",
             "received_by",
         ).filter(folio__hotel_id__in=hotel_ids)
+
+        hotel = self.request.user.resolve_hotel_context(self.request)
+        if hotel is not None:
+            queryset = queryset.filter(folio__hotel_id=hotel)
+
+        return queryset
 
     def perform_create(self, serializer):
         payment = serializer.save(

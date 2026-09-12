@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from rest_framework.exceptions import PermissionDenied
 
 
 class UserManager(BaseUserManager):
@@ -64,6 +65,70 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def hotel_ids(self):
+        return list(
+            StaffMembership.objects.filter(
+                user=self,
+                is_active=True,
+            ).values_list("hotel_id", flat=True)
+        )
+
+    def has_hotel_access(self, hotel_id):
+        if hotel_id in (None, ""):
+            return False
+
+        try:
+            hotel_id = int(hotel_id)
+        except (TypeError, ValueError):
+            return False
+
+        return StaffMembership.objects.filter(
+            user=self,
+            hotel_id=hotel_id,
+            is_active=True,
+        ).exists()
+
+    def resolve_hotel_context(self, request=None, explicit_hotel=None):
+        hotel_ids = []
+
+        if request is not None:
+            if hasattr(request, "query_params"):
+                query_hotel = request.query_params.get("hotel")
+                if query_hotel not in (None, ""):
+                    hotel_ids.append(str(query_hotel))
+
+                header_hotel = request.headers.get("X-Hotel-ID")
+                if header_hotel not in (None, ""):
+                    hotel_ids.append(str(header_hotel))
+
+            if hasattr(request, "data"):
+                payload_hotel = request.data.get("hotel") if hasattr(request.data, "get") else None
+                if payload_hotel not in (None, ""):
+                    hotel_ids.append(str(payload_hotel))
+
+        if explicit_hotel not in (None, ""):
+            hotel_ids.append(str(explicit_hotel))
+
+        if not hotel_ids:
+            return None
+
+        unique_hotel_ids = set()
+        for hotel_id in hotel_ids:
+            try:
+                unique_hotel_ids.add(str(int(hotel_id)))
+            except (TypeError, ValueError):
+                unique_hotel_ids.add(str(hotel_id))
+
+        if len(unique_hotel_ids) > 1:
+            raise PermissionDenied("Hotel context mismatch. The selected hotel does not match the active hotel.")
+
+        resolved_hotel_id = next(iter(unique_hotel_ids))
+
+        if not self.has_hotel_access(resolved_hotel_id):
+            raise PermissionDenied("You do not have access to this hotel.")
+
+        return int(resolved_hotel_id) if resolved_hotel_id.isdigit() else resolved_hotel_id
 
 
 class StaffMembership(models.Model):

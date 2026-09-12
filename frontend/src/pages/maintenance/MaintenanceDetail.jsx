@@ -33,6 +33,8 @@ export default function MaintenanceDetail() {
 
         if (res.data.assigned_to) {
           setSelectedStaff(String(res.data.assigned_to));
+        } else {
+          setSelectedStaff("");
         }
       } catch (err) {
         if (!mounted) return;
@@ -82,11 +84,11 @@ export default function MaintenanceDetail() {
 
         setStaff(maintenanceStaff);
       } catch (err) {
-        // Loading staff is a manager-only capability
-        // (/auth/staff/ requires OWNER or MANAGER). For
-        // maintenance-role users this is expected, so treat it
-        // as non-fatal and simply show no assignees.
+        // Loading staff is a manager-only capability.
+        // If the current user cannot access /auth/staff/,
+        // treat it as non-fatal.
         if (!mounted) return;
+
         setStaff([]);
       } finally {
         if (mounted) {
@@ -140,7 +142,6 @@ export default function MaintenanceDetail() {
 
     const selectedMember = staff.find(
       (member) =>
-        String(member.user) === String(selectedStaff) ||
         String(member.id) === String(selectedStaff)
     );
 
@@ -158,9 +159,19 @@ export default function MaintenanceDetail() {
       return;
     }
 
+    // HTML select values are strings.
+    // Django REST Framework expects the user primary key
+    // as a numeric value.
+    const staffId = Number(selectedStaff);
+
+    if (!Number.isInteger(staffId) || staffId <= 0) {
+      setError("Invalid maintenance staff selected.");
+      return;
+    }
+
     await doPatch(
       {
-        assigned_to: selectedStaff,
+        assigned_to: staffId,
       },
       "assign"
     );
@@ -271,7 +282,7 @@ export default function MaintenanceDetail() {
             {req.status && (
               <div>
                 <span
-                  className={`badge res-status-${req.status.toLowerCase()}`}
+                  className={`task-pill task-pill-${req.status.toLowerCase()}`}
                 >
                   {req.status}
                 </span>
@@ -366,7 +377,7 @@ export default function MaintenanceDetail() {
                 {staff.map((member) => (
                   <option
                     key={member.id}
-                    value={member.user}
+                    value={member.id}
                   >
                     {member.first_name || ""}{" "}
                     {member.last_name || ""}{" "}

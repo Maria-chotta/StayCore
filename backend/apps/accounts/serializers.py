@@ -71,6 +71,26 @@ class StaffSerializer(serializers.ModelSerializer):
         min_length=8,
     )
 
+    def validate(self, attrs):
+        if self.instance is not None:
+            return super().validate(attrs)
+
+        email = self.initial_data.get("email")
+        hotel = attrs.get("hotel") or self.initial_data.get("hotel")
+
+        if email and hotel:
+            user = User.objects.filter(email__iexact=email).first()
+            if user and StaffMembership.objects.filter(
+                user=user,
+                hotel=hotel,
+                is_active=True,
+            ).exists():
+                raise serializers.ValidationError(
+                    {"hotel": "This user already belongs to this hotel."}
+                )
+
+        return super().validate(attrs)
+
     class Meta:
         model = StaffMembership
         fields = [
@@ -96,6 +116,18 @@ class StaffSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         user = self.instance.user if self.instance else None
+
+        existing_user = User.objects.filter(email__iexact=value).first()
+        hotel = self.initial_data.get("hotel")
+
+        if existing_user and hotel and StaffMembership.objects.filter(
+            user=existing_user,
+            hotel=hotel,
+            is_active=True,
+        ).exists():
+            raise serializers.ValidationError(
+                "This user already belongs to this hotel."
+            )
 
         queryset = User.objects.filter(email__iexact=value)
 
@@ -196,17 +228,35 @@ class StaffSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop("password", None)
 
-        user_data = validated_data.pop("user")
-        email = user_data["email"]
+        user_data = validated_data.pop("user", {})
+        email = user_data.get("email")
+        hotel = validated_data.get("hotel")
+
+        if not email:
+            email = self.initial_data.get("email")
+
+        user = User.objects.filter(email__iexact=email).first() if email else None
+        if user and hotel and StaffMembership.objects.filter(user=user, hotel=hotel).exists():
+            raise serializers.ValidationError(
+                {"hotel": "This user already belongs to this hotel."}
+            )
 
         with transaction.atomic():
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                first_name=user_data.get("first_name", ""),
-                last_name=user_data.get("last_name", ""),
-                phone=user_data.get("phone"),
-            )
+            if user is None:
+                user = User.objects.create_user(
+                    email=email,
+                    password=password,
+                    first_name=user_data.get("first_name", self.initial_data.get("first_name", "")),
+                    last_name=user_data.get("last_name", self.initial_data.get("last_name", "")),
+                    phone=user_data.get("phone", self.initial_data.get("phone")),
+                )
+            else:
+                if password:
+                    user.set_password(password)
+                    user.first_name = user_data.get("first_name", user.first_name)
+                    user.last_name = user_data.get("last_name", user.last_name)
+                    user.phone = user_data.get("phone", user.phone)
+                    user.save(update_fields=["password", "first_name", "last_name", "phone"])
 
             membership = StaffMembership.objects.create(
                 user=user,

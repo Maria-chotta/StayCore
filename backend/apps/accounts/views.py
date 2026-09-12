@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -30,16 +31,14 @@ class StaffViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
+        hotel_id = self.request.user.resolve_hotel_context(self.request)
+
         authorized_hotels = StaffMembership.objects.filter(
             user=self.request.user,
             is_active=True,
-            role__in=[
-                StaffMembership.Role.OWNER,
-                StaffMembership.Role.MANAGER,
-            ],
         ).values_list("hotel_id", flat=True)
 
-        return (
+        queryset = (
             StaffMembership.objects
             .select_related("user", "hotel")
             .filter(
@@ -47,3 +46,8 @@ class StaffViewSet(viewsets.ModelViewSet):
             )
             .distinct()
         )
+
+        if hotel_id is not None:
+            queryset = queryset.filter(hotel_id=hotel_id)
+
+        return queryset

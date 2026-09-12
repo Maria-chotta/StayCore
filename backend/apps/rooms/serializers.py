@@ -61,6 +61,17 @@ class RoomSerializer(serializers.ModelSerializer):
             self.instance.hotel if self.instance else None
         )
 
+        try:
+            resolved_hotel_id = request.user.resolve_hotel_context(request, explicit_hotel=hotel)
+            if hotel is not None and resolved_hotel_id is not None:
+                hotel_id = getattr(hotel, "id", hotel)
+                if str(hotel_id) != str(resolved_hotel_id):
+                    raise serializers.ValidationError({
+                        "hotel": "The selected hotel does not match the active hotel context."
+                    })
+        except Exception:
+            raise
+
         if hotel:
             has_access = StaffMembership.objects.filter(
                 user=request.user,

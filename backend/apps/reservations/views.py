@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -158,11 +158,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
         status = params.get("status")
         guest = params.get("guest")
         room = params.get("room")
-        hotel = params.get("hotel")
+        hotel = self.request.user.resolve_hotel_context(self.request)
         q = params.get("q")
         check_in_after = params.get("check_in_after")
         check_in_before = params.get("check_in_before")
         date = params.get("date")
+
+        if hotel is not None:
+            queryset = queryset.filter(hotel_id=hotel)
 
         if status:
             queryset = queryset.filter(status=status)
@@ -172,9 +175,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
         if room:
             queryset = queryset.filter(room_id=room)
-
-        if hotel:
-            queryset = queryset.filter(hotel_id=hotel)
 
         if check_in_after:
             queryset = queryset.filter(check_in_date__gte=check_in_after)

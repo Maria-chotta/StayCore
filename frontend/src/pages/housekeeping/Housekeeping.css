@@ -1,19 +1,927 @@
-.housekeeping-root { padding: 16px; }
-.housekeeping-header { display:flex; align-items:center; gap:12px; }
-.housekeeping-count { font-size: 14px; color: var(--muted); }
-.housekeeping-filters-row { flex-wrap:wrap; }
-.housekeeping-table { width:100%; border-collapse: collapse; }
-.housekeeping-table th, .housekeeping-table td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); }
-.housekeeping-table tr[role="button"]{ cursor:pointer; }
-.housekeeping-table tr[role="button"]:hover { background: var(--hover); }
-.housekeeping-table thead { display:none; }
-.housekeeping-table, .housekeeping-table tbody, .housekeeping-table tr, .housekeeping-table td { display:block; width:100%; }
-.housekeeping-table tr { margin-bottom:12px; }
-.housekeeping-table td { padding:8px; border-bottom: none; }
-.housekeeping-table td::before { font-weight:600; display:inline-block; width:120px; }
-.housekeeping-table td[data-label="Task"]::before { content: "Task: "; }
-.housekeeping-table td[data-label="Room"]::before { content: "Room: "; }
-.housekeeping-table td[data-label="Scheduled"]::before { content: "Scheduled: "; }
-.housekeeping-table td[data-label="Assigned"]::before { content: "Assigned: "; }
-.housekeeping-table td[data-label="Priority"]::before { content: "Priority: "; }
-.housekeeping-table td[data-label="Status"]::before { content: "Status: "; }
+.housekeeping-root {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.housekeeping-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.housekeeping-header h1 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.housekeeping-header .btn {
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.housekeeping-header .btn:hover {
+  opacity: 0.92;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.housekeeping-header .btn:active {
+  transform: translateY(1px);
+}
+
+.housekeeping-count,
+.housekeeping-loading {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   Error / Empty
+   ========================================================= */
+
+.housekeeping-error {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, #dc2626 22%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, #dc2626 6%, var(--bg));
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.housekeeping-empty {
+  margin-top: 18px;
+  padding: 44px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--muted);
+  text-align: center;
+  font-size: 14px;
+}
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+
+.housekeeping-root .btn-ghost {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.housekeeping-root .btn-ghost:hover {
+  background: var(--hover, color-mix(in srgb, var(--text) 4%, var(--bg)));
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border));
+}
+
+.housekeeping-root .btn-ghost:active {
+  transform: translateY(1px);
+}
+
+.housekeeping-root .btn-ghost.small {
+  min-height: 34px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+/* =========================================================
+   Main table
+   ========================================================= */
+
+.housekeeping-wrap {
+  width: 100%;
+  margin-top: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+/* =========================================================
+   Filters
+   ========================================================= */
+
+.housekeeping-filters-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 96%, var(--text));
+}
+
+.housekeeping-filters-row input,
+.housekeeping-filters-row select {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 9px 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 9px !important;
+  outline: none;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.housekeeping-filters-row input {
+  flex: 1 1 190px;
+  min-width: 160px;
+}
+
+.housekeeping-filters-row select {
+  flex: 0 1 145px;
+  min-width: 125px;
+  cursor: pointer;
+}
+
+.housekeeping-filters-row input::placeholder {
+  color: var(--muted);
+}
+
+.housekeeping-filters-row input:focus,
+.housekeeping-filters-row select:focus {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.housekeeping-filters-row input:hover,
+.housekeeping-filters-row select:hover {
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border)) !important;
+}
+
+/* =========================================================
+   Table
+   ========================================================= */
+
+.housekeeping-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.housekeeping-table thead {
+  display: table-header-group;
+}
+
+.housekeeping-table th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 96%, var(--text));
+  color: var(--muted);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.065em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.housekeeping-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.housekeeping-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.housekeeping-table tbody tr[role="button"] {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.housekeeping-table tbody tr[role="button"]:hover {
+  background: color-mix(in srgb, var(--accent) 3%, var(--bg));
+}
+
+.housekeeping-table tbody tr[role="button"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: -2px;
+}
+
+.housekeeping-table td[data-label="Task"] {
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.housekeeping-table td[data-label="Room"] {
+  color: var(--text-h);
+  font-weight: 650;
+}
+
+.housekeeping-table td[data-label="Scheduled"] {
+  color: var(--muted);
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.housekeeping-table td[data-label="Assigned"] {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.housekeeping-table td[data-label="Actions"] {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Task Status Pills
+   ========================================================= */
+
+.task-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 7%, var(--bg));
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.task-pill-pending {
+  border-color: color-mix(in srgb, #d97706 25%, var(--border));
+  background: color-mix(in srgb, #d97706 9%, var(--bg));
+  color: #b45309;
+}
+
+.task-pill-assigned {
+  border-color: color-mix(in srgb, #2563eb 25%, var(--border));
+  background: color-mix(in srgb, #2563eb 9%, var(--bg));
+  color: #1d4ed8;
+}
+
+.task-pill-in_progress {
+  border-color: color-mix(in srgb, #7c3aed 25%, var(--border));
+  background: color-mix(in srgb, #7c3aed 9%, var(--bg));
+  color: #6d28d9;
+}
+
+.task-pill-completed {
+  border-color: color-mix(in srgb, #16a34a 25%, var(--border));
+  background: color-mix(in srgb, #16a34a 9%, var(--bg));
+  color: #15803d;
+}
+
+.task-pill-cancelled {
+  border-color: color-mix(in srgb, #dc2626 25%, var(--border));
+  background: color-mix(in srgb, #dc2626 8%, var(--bg));
+  color: #b91c1c;
+}
+
+.task-pill-unknown {
+  color: var(--muted);
+}
+
+/* Priority */
+
+.housekeeping-table td[data-label="Priority"] {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.housekeeping-table td[data-label="Priority"]::first-letter {
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   Medium screens
+   ========================================================= */
+
+@media (max-width: 1150px) {
+  .housekeeping-root {
+    padding: 18px;
+  }
+
+  .housekeeping-table th,
+  .housekeeping-table td {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .housekeeping-table th:nth-child(4),
+  .housekeeping-table td:nth-child(4) {
+    display: none;
+  }
+}
+
+/* =========================================================
+   Tablet
+   ========================================================= */
+
+@media (max-width: 800px) {
+  .housekeeping-root {
+    padding: 14px;
+  }
+
+  .housekeeping-header {
+    align-items: flex-start;
+  }
+
+  .housekeeping-header h1 {
+    font-size: 25px;
+  }
+
+  .housekeeping-header .btn {
+    margin-left: auto;
+  }
+
+  .housekeeping-wrap {
+    border-radius: 14px;
+  }
+
+  .housekeeping-filters-row {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .housekeeping-filters-row input,
+  .housekeeping-filters-row select {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+
+  /* Table → cards */
+
+  .housekeeping-table,
+  .housekeeping-table tbody,
+  .housekeeping-table tr,
+  .housekeeping-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .housekeeping-table thead {
+    display: none;
+  }
+
+  .housekeeping-table tbody {
+    padding: 10px;
+  }
+
+  .housekeeping-table tbody tr[role="button"] {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  }
+
+  .housekeeping-table tbody tr[role="button"]:last-child {
+    margin-bottom: 0;
+  }
+
+  .housekeeping-table td {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 2px;
+    border: 0;
+    min-width: 0 !important;
+  }
+
+  .housekeeping-table td::before {
+    flex: 0 0 92px;
+    display: inline-block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.045em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .housekeeping-table td[data-label="Task"]::before {
+    content: "Task";
+  }
+
+  .housekeeping-table td[data-label="Room"]::before {
+    content: "Room";
+  }
+
+  .housekeeping-table td[data-label="Scheduled"]::before {
+    content: "Scheduled";
+  }
+
+  .housekeeping-table td[data-label="Assigned"]::before {
+    content: "Assigned";
+  }
+
+  .housekeeping-table td[data-label="Priority"]::before {
+    content: "Priority";
+  }
+
+  .housekeeping-table td[data-label="Status"]::before {
+    content: "Status";
+  }
+
+  .housekeeping-table td[data-label="Actions"]::before {
+    content: "Actions";
+  }
+
+  .housekeeping-table td[data-label="Task"] {
+    font-size: 14px;
+  }
+
+  .housekeeping-table td[data-label="Actions"] {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* =========================================================
+   Small phones
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .housekeeping-root {
+    padding: 12px;
+  }
+
+  .housekeeping-header {
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .housekeeping-header .btn {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .housekeeping-header h1 {
+    font-size: 23px;
+  }
+
+  .housekeeping-root > div:nth-child(2) {
+    flex-wrap: wrap;
+  }
+
+  .housekeeping-root > div:nth-child(2) > div:last-child {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .housekeeping-root > div:nth-child(2) .btn-ghost {
+    width: 100%;
+  }
+
+  .housekeeping-filters-row input,
+  .housekeeping-filters-row select {
+    flex-basis: 100%;
+  }
+
+  .housekeeping-table tbody {
+    padding: 8px;
+  }
+
+  .housekeeping-table tbody tr[role="button"] {
+    padding: 9px 10px;
+  }
+
+  .housekeeping-table td {
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .housekeeping-table td::before {
+    flex-basis: 78px;
+    font-size: 9px;
+  }
+}
+
+/* =========================================================
+   Reduced motion
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .housekeeping-root *,
+  .housekeeping-root *::before,
+  .housekeeping-root *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   Housekeeping Detail
+   ========================================================= */
+
+.housekeeping-card {
+  width: 100%;
+  max-width: 1180px;
+  margin-top: 18px;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.housekeeping-card > div:first-child {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.housekeeping-card h2 {
+  margin: 0 0 7px;
+  color: var(--text-h);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.housekeeping-card > div:first-child > div:first-child > div {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.housekeeping-card > div:nth-child(2) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 0 !important;
+  padding: 4px 0;
+}
+
+.housekeeping-card > div:nth-child(2) > div {
+  min-height: 54px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.housekeeping-card > div:nth-child(2) > div strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.housekeeping-card > div:nth-child(2) > div:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.housekeeping-card > div:nth-child(3) {
+  margin-top: 20px !important;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.housekeeping-card input,
+.housekeeping-card select {
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: none;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+}
+
+.housekeeping-card input {
+  min-width: 220px;
+}
+
+.housekeeping-card select {
+  margin-top: 7px;
+  min-width: 190px;
+  cursor: pointer;
+}
+
+.housekeeping-card input:focus,
+.housekeeping-card select:focus {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.housekeeping-card label {
+  display: inline-flex;
+  flex-direction: column;
+  color: var(--text-h);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.housekeeping-card .btn {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.housekeeping-card .btn:disabled,
+.housekeeping-card .btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Detail status badge */
+
+.housekeeping-card .badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   Housekeeping Form
+   ========================================================= */
+
+.housekeeping-root > form {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 18px;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.housekeeping-root > form label {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--text-h);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.housekeeping-root > form input,
+.housekeeping-root > form select,
+.housekeeping-root > form textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: none;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.housekeeping-root > form input,
+.housekeeping-root > form select {
+  min-height: 42px;
+}
+
+.housekeeping-root > form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.housekeeping-root > form input::placeholder,
+.housekeeping-root > form textarea::placeholder {
+  color: var(--muted);
+}
+
+.housekeeping-root > form input:focus,
+.housekeeping-root > form select:focus,
+.housekeeping-root > form textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.field-error {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.form-error {
+  max-width: 900px;
+  margin-top: 18px;
+  padding: 13px 15px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, #dc2626 22%, var(--border));
+  border-radius: 11px;
+  background: color-mix(in srgb, #dc2626 6%, var(--bg));
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.housekeeping-root > form > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+.housekeeping-root > form > div:last-child .btn {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.housekeeping-root > form > div:last-child .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   Detail / Form Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .housekeeping-card {
+    padding: 20px;
+  }
+
+  .housekeeping-card > div:nth-child(2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .housekeeping-card > div:nth-child(2) > div:nth-last-child(-n + 3) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .housekeeping-card > div:nth-child(2) > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .housekeeping-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .housekeeping-card > div:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  .housekeeping-card > div:nth-child(2) {
+    grid-template-columns: 1fr;
+  }
+
+  .housekeeping-card > div:nth-child(2) > div,
+  .housekeeping-card > div:nth-child(2) > div:nth-last-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .housekeeping-card > div:nth-child(2) > div:last-child {
+    border-bottom: 0;
+  }
+
+  .housekeeping-card > div:nth-child(3) > div:first-child {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .housekeeping-card input,
+  .housekeeping-card select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .housekeeping-card > div:nth-child(3) > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  .housekeeping-root > form {
+    padding: 18px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .housekeeping-card h2 {
+    font-size: 19px;
+  }
+
+  .housekeeping-card > div:nth-child(3) > div:last-child {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .housekeeping-card > div:nth-child(3) > div:last-child .btn,
+  .housekeeping-card > div:nth-child(3) > div:last-child .btn-ghost {
+    width: 100%;
+  }
+
+  .housekeeping-root > form > div:last-child {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .housekeeping-root > form > div:last-child .btn,
+  .housekeeping-root > form > div:last-child .btn-ghost {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .housekeeping-card *,
+  .housekeeping-root > form *,
+  .housekeeping-card *::before,
+  .housekeeping-root > form *::before {
+    transition: none !important;
+  }
+}

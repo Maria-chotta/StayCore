@@ -22,9 +22,14 @@ api.interceptors.request.use(
 
     if (!isAuthUrl) {
       const token = localStorage.getItem("access_token");
+      const activeHotelId = localStorage.getItem("active_hotel_id");
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      if (activeHotelId) {
+        config.headers["X-Hotel-ID"] = String(activeHotelId);
       }
     }
 
