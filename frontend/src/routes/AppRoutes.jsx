@@ -6,12 +6,14 @@ import PropertyOnboarding from "../pages/properties/PropertyOnboarding";
 
 import Home from "../pages/home/Home";
 import Dashboard from "../pages/dashboard/Dashboard";
+import FrontDesk from "../pages/front-desk/FrontDesk";
 
 import RequireAuth from "../components/RequireAuth";
 import AuthenticatedLayout from "../components/layout/AuthenticatedLayout";
 
 import Rooms from "../pages/rooms/Rooms";
 import RoomDetail from "../pages/rooms/RoomDetail";
+import RoomForm from "../pages/rooms/RoomForm";
 
 import RoomTypes from "../pages/room-types/RoomTypes";
 import RoomTypeDetail from "../pages/room-types/RoomTypeDetail";
@@ -54,6 +56,10 @@ function ProtectedPage({ children }) {
   );
 }
 
+function AuthenticatedPage({ children }) {
+  return <RequireAuth>{children}</RequireAuth>;
+}
+
 
 function AppRoutes() {
   return (
@@ -88,6 +94,15 @@ function AppRoutes() {
       />
 
       <Route
+        path="/front-desk"
+        element={
+          <ProtectedPage>
+            <FrontDesk />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
         path="/portfolio"
         element={
           <ProtectedPage>
@@ -99,9 +114,9 @@ function AppRoutes() {
       <Route
         path="/properties/onboarding"
         element={
-          <ProtectedPage>
+          <AuthenticatedPage>
             <PropertyOnboarding />
-          </ProtectedPage>
+          </AuthenticatedPage>
         }
       />
 
@@ -115,6 +130,15 @@ function AppRoutes() {
         element={
           <ProtectedPage>
             <Rooms />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/rooms/new"
+        element={
+          <ProtectedPage>
+            <RoomForm />
           </ProtectedPage>
         }
       />

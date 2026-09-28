@@ -14,7 +14,7 @@ export default function RequireAuth({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (needsHotelSetup) {
+  if (needsHotelSetup && location.pathname !== "/properties/onboarding") {
     return <Navigate to="/properties/onboarding" state={{ from: location }} replace />;
   }
 

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Plus, CheckCircle2 } from "lucide-react";
 import api from "../../services/api";
 import { useAuth } from "../../context/useAuth";
+import "../auth/Login.css";
 
 const emptyForm = {
   name: "",
@@ -19,35 +19,29 @@ const emptyForm = {
 function FieldError({ error }) {
   if (!error) return null;
 
-  return <div className="staff-field-error">{Array.isArray(error) ? error.join("; ") : String(error)}</div>;
+  return <div className="onboarding-field-error">{Array.isArray(error) ? error.join("; ") : String(error)}</div>;
+}
+
+function formatApiErrors(responseData) {
+  if (!responseData || typeof responseData !== "object") {
+    return "Could not create the property. Please try again.";
+  }
+
+  return Object.entries(responseData)
+    .flatMap(([field, messages]) => {
+      const values = Array.isArray(messages) ? messages : [messages];
+      return values.map((message) => `${field === "non_field_errors" ? "Property" : field}: ${String(message)}`);
+    })
+    .join(" ");
 }
 
 export default function PropertyOnboarding() {
   const navigate = useNavigate();
   const { user, setActiveHotel, updateHotelMemberships } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [form, setForm] = useState(emptyForm);
-  const [existingHotels, setExistingHotels] = useState([]);
-
-  useEffect(() => {
-    async function loadHotels() {
-      setLoading(true);
-      try {
-        const response = await api.get("/hotels/");
-        const hotels = Array.isArray(response.data) ? response.data : response.data?.results || [];
-        setExistingHotels(hotels);
-      } catch (err) {
-        setError(err.response?.data?.detail || "Could not load your properties.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadHotels();
-  }, []);
 
   const memberships = useMemo(() => Array.isArray(user?.memberships) ? user.memberships : [], [user]);
 
@@ -82,7 +76,18 @@ export default function PropertyOnboarding() {
     setError("");
 
     try {
-      const response = await api.post("/hotels/", form);
+      const response = await api.post("/hotels/", {
+        ...form,
+        name: form.name.trim(),
+        address: form.address.trim(),
+        city: form.city.trim(),
+        country: form.country.trim(),
+        currency: form.currency.trim().toUpperCase(),
+        timezone: form.timezone.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        description: form.description.trim(),
+      });
       const createdHotel = response.data;
       const nextUser = updateHotelMemberships({
         id: createdHotel.id,
@@ -101,12 +106,9 @@ export default function PropertyOnboarding() {
 
       if (responseData && typeof responseData === "object") {
         setFieldErrors(responseData);
-        const message = responseData.non_field_errors || responseData.detail;
-        if (message) {
-          setError(Array.isArray(message) ? message.join("; ") : String(message));
-        }
+        setError(formatApiErrors(responseData));
       } else {
-        setError(err.response?.data?.detail || "Could not create the property.");
+        setError("Could not create the property. Please check your connection and try again.");
       }
     } finally {
       setSubmitting(false);
@@ -114,8 +116,8 @@ export default function PropertyOnboarding() {
   };
 
   return (
-    <main className="login-page">
-      <section className="login-shell" style={{ maxWidth: 1100, width: "100%" }}>
+    <main className="onboarding-page">
+      <section className="onboarding-shell">
         <div className="login-brand"><span>◆</span> StayCore</div>
         <div className="login-intro">
           <p className="login-eyebrow">PROPERTY ONBOARDING</p>
@@ -123,8 +125,7 @@ export default function PropertyOnboarding() {
           <p>Set up the hotel property you want to operate, then continue into the dashboard.</p>
         </div>
 
-        <div style={{ display: "grid", gap: 24, gridTemplateColumns: "1.2fr 0.8fr" }}>
-          <form className="login-form" onSubmit={handleCreateHotel}>
+        <form className="login-form onboarding-form" onSubmit={handleCreateHotel}>
             <div className="login-field">
               <label htmlFor="name">Property name</label>
               <input id="name" name="name" value={form.name} onChange={handleChange} placeholder="Sunset Lodge" />
@@ -153,11 +154,11 @@ export default function PropertyOnboarding() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div className="login-field">
                 <label htmlFor="currency">Currency</label>
-                <input id="currency" name="currency" value={form.currency} onChange={handleChange} />
+                <input id="currency" name="currency" value={form.currency} onChange={handleChange} maxLength={3} />
               </div>
               <div className="login-field">
                 <label htmlFor="timezone">Timezone</label>
-                <input id="timezone" name="timezone" value={form.timezone} onChange={handleChange} />
+                <input id="timezone" name="timezone" value={form.timezone} onChange={handleChange} maxLength={50} />
               </div>
             </div>
 
@@ -168,7 +169,7 @@ export default function PropertyOnboarding() {
 
             <div className="login-field">
               <label htmlFor="phone">Phone</label>
-              <input id="phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+255 700 000 000" />
+              <input id="phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+255 700 000 000" maxLength={20} />
             </div>
 
             <div className="login-field">
@@ -181,42 +182,7 @@ export default function PropertyOnboarding() {
             <button className="login-submit" type="submit" disabled={submitting}>
               {submitting ? "Creating property..." : memberships.length ? "Add property" : "Create property"}
             </button>
-          </form>
-
-          <aside className="login-aside" style={{ padding: 24 }}>
-            <span className="login-aside-mark">01</span>
-            <h2>Property setup</h2>
-            <div style={{ display: "grid", gap: 12 }}>
-              {loading ? (
-                <p>Loading your current properties…</p>
-              ) : existingHotels.length === 0 ? (
-                <div style={{ display: "grid", gap: 12 }}>
-                  <div className="property-chip" style={{ display: "flex", alignItems: "center", gap: 8 }}><Building2 size={16} /> No properties yet</div>
-                  <p>Create your first property to start managing rooms, reservations, and operations.</p>
-                </div>
-              ) : (
-                existingHotels.map((hotel) => (
-                  <button
-                    key={hotel.id}
-                    type="button"
-                    className="panel-link"
-                    onClick={() => {
-                      setActiveHotel(String(hotel.id));
-                      navigate("/dashboard", { replace: true });
-                    }}
-                    style={{ justifyContent: "space-between", width: "100%", margin: 0 }}
-                  >
-                    <span>{hotel.name}</span>
-                    <CheckCircle2 size={16} />
-                  </button>
-                ))
-              )}
-              <button type="button" className="hero-text-link" onClick={() => navigate("/dashboard", { replace: true })} style={{ textAlign: "left", marginTop: 8 }}>
-                <Plus size={14} /> Go to dashboard
-              </button>
-            </div>
-          </aside>
-        </div>
+        </form>
       </section>
     </main>
   );

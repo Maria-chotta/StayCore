@@ -12,25 +12,7 @@ class RoomTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        hotel_ids = StaffMembership.objects.filter(
-            user=self.request.user,
-            is_active=True,
-        ).values_list(
-            "hotel_id",
-            flat=True,
-        )
-
-        queryset = RoomType.objects.filter(
-            rooms__hotel_id__in=hotel_ids
-        ).distinct().order_by(
-            "name"
-        )
-
-        hotel_id = self.request.user.resolve_hotel_context(self.request)
-        if hotel_id is not None:
-            queryset = queryset.filter(rooms__hotel_id=hotel_id).distinct()
-
-        return queryset
+        return RoomType.objects.all().order_by("name")
 
 
 class RoomViewSet(viewsets.ModelViewSet):

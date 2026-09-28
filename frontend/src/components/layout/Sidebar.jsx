@@ -6,6 +6,7 @@ import {
   ConciergeBell,
   FileBarChart,
   LayoutDashboard,
+  MonitorCheck,
   LogOut,
   Users,
   Wrench,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import PropertySwitcher from "./PropertySwitcher";
 
 const sections = [
   { label: "Operations", links: [
@@ -48,9 +50,13 @@ export default function Sidebar({ isOpen, onNavigate }) {
         <div><strong>STAYCORE</strong><span>Hotel Management</span></div>
         <button className="sidebar-close" onClick={onNavigate} aria-label="Close navigation"><X size={18} /></button>
       </div>
+      <div className="sidebar-property-switcher"><PropertySwitcher /></div>
       <nav className="sidebar-nav" aria-label="Main navigation">
         <NavLink to="/dashboard" onClick={onNavigate} className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <LayoutDashboard size={18} /><span>Dashboard</span>
+        </NavLink>
+        <NavLink to="/front-desk" onClick={onNavigate} className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <MonitorCheck size={18} /><span>Front desk</span>
         </NavLink>
         <NavLink to="/portfolio" onClick={onNavigate} className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <BarChart3 size={18} /><span>Portfolio</span>

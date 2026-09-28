@@ -119,6 +119,7 @@ function Rooms() {
       <div className="rooms-header">
         <h1>{heading}</h1>
         <div className="rooms-filter">
+          <button className="btn" type="button" onClick={() => navigate("/rooms/new")}>Create Room</button>
           <label htmlFor="status-select" className="sr-only">Filter by status</label>
           <select id="status-select" value={status || ""} onChange={handleStatusSelectChange}>
             {STATUS_OPTIONS.map((o) => (

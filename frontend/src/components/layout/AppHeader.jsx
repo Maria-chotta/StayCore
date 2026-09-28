@@ -5,6 +5,7 @@ import "./shell.css";
 
 const pageNames = {
   "/dashboard": "Dashboard",
+  "/front-desk": "Front Desk",
   "/portfolio": "Portfolio",
   "/reservations": "Reservations", "/rooms": "Rooms",
   "/room-types": "Room Types", "/guests": "Guests", "/housekeeping": "Housekeeping",

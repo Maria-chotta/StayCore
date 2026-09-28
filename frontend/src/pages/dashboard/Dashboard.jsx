@@ -5,7 +5,7 @@ import "./Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, BedDouble, CalendarDays, CheckCircle2, ClipboardList,
-  DoorOpen, LogIn, LogOut, Plus, RefreshCw, Settings2, ShieldCheck,
+  DoorOpen, FileBarChart, LogIn, LogOut, Plus, RefreshCw, Settings2, ShieldCheck,
   Sparkles, Wrench,
 } from "lucide-react";
 
@@ -41,6 +41,7 @@ const guestName = (item) =>
     : item.guest ? `Guest #${item.guest}` : "Guest";
 
 const displayDate = (value) => value ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(`${value}T00:00:00`)) : "—";
+const displayAmount = (value) => Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
 
 /* =========================================================
@@ -553,12 +554,10 @@ export default function Dashboard() {
   ===================================================== */
 
   const load = useCallback(async () => {
-
     setLoading(true);
     setError("");
 
     try {
-
       const [
         roomsRes,
         reservationsRes,
@@ -567,155 +566,39 @@ export default function Dashboard() {
         maintenanceRes,
         foliosRes,
       ] = await Promise.all([
-
         api.get("/rooms/"),
-
         api.get("/reservations/"),
-
         api.get("/guests/"),
-
         api.get("/housekeeping/"),
-
         api.get("/maintenance/"),
-
         api.get("/folios/"),
-
       ]);
 
-
-      const rooms =
-        asList(roomsRes.data);
-
-      const guests =
-        asList(guestsRes.data);
-
-
-      /*
-       * Determine hotels available to the
-       * currently authenticated user.
-       */
-
+      const rooms = asList(roomsRes.data);
+      const guests = asList(guestsRes.data);
       const hotelIds = new Set([
-        ...rooms.map(
-          (item) => String(item.hotel)
-        ),
-
-        ...guests.map(
-          (item) => String(item.hotel)
-        ),
+        ...rooms.map((item) => String(item.hotel)),
+        ...guests.map((item) => String(item.hotel)),
       ]);
-
 
       setData({
-
         rooms,
-
         guests,
-
-        reservations:
-          asList(reservationsRes.data),
-
-        housekeeping:
-          asList(
-            housekeepingRes.data
-          ).filter(
-            (item) =>
-              hotelIds.has(
-                String(item.hotel)
-              )
-          ),
-
-        maintenance:
-          asList(
-            maintenanceRes.data
-          ).filter(
-            (item) =>
-              hotelIds.has(
-                String(item.hotel)
-              )
-          ),
-
-        folios:
-          asList(
-            foliosRes.data
-          ).filter(
-            (item) =>
-              hotelIds.has(
-                String(item.hotel)
-              )
-          ),
-
+        reservations: asList(reservationsRes.data),
+        housekeeping: asList(housekeepingRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        maintenance: asList(maintenanceRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        folios: asList(foliosRes.data).filter((item) => hotelIds.has(String(item.hotel))),
       });
-
     } catch (err) {
-
-      console.error(
-        "Dashboard loading error:",
-        err
-      );
-
-      setError(
-        typeof err.response?.data === "string"
-          ? err.response.data
-          : "Dashboard data could not be loaded."
-      );
-
+      console.error("Dashboard loading error:", err);
+      setError(typeof err.response?.data === "string" ? err.response.data : "Dashboard data could not be loaded.");
     } finally {
-
       setLoading(false);
-
     }
-
   }, []);
 
-
   useEffect(() => {
-
-    void (async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const [
-          roomsRes,
-          reservationsRes,
-          guestsRes,
-          housekeepingRes,
-          maintenanceRes,
-          foliosRes,
-        ] = await Promise.all([
-          api.get("/rooms/"),
-          api.get("/reservations/"),
-          api.get("/guests/"),
-          api.get("/housekeeping/"),
-          api.get("/maintenance/"),
-          api.get("/folios/"),
-        ]);
-
-        const rooms = asList(roomsRes.data);
-        const guests = asList(guestsRes.data);
-
-        const hotelIds = new Set([
-          ...rooms.map((item) => String(item.hotel)),
-          ...guests.map((item) => String(item.hotel)),
-        ]);
-
-        setData({
-          rooms,
-          guests,
-          reservations: asList(reservationsRes.data),
-          housekeeping: asList(housekeepingRes.data).filter((item) => hotelIds.has(String(item.hotel))),
-          maintenance: asList(maintenanceRes.data).filter((item) => hotelIds.has(String(item.hotel))),
-          folios: asList(foliosRes.data).filter((item) => hotelIds.has(String(item.hotel))),
-        });
-      } catch (err) {
-        console.error("Dashboard loading error:", err);
-        setError(typeof err.response?.data === "string" ? err.response.data : "Dashboard data could not be loaded.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-
+    void load();
   }, [load]);
 
 
@@ -823,6 +706,11 @@ export default function Dashboard() {
     totalRooms > 0
       ? (occupiedRooms / totalRooms) * 100
       : 0;
+
+  const chargesOnBooks = data.folios.reduce(
+    (total, folio) => total + Number(folio.total_charges || 0),
+    0
+  );
 
   const highPriorityMaintenance = data.maintenance.filter(
     (item) =>
@@ -984,6 +872,15 @@ export default function Dashboard() {
           loading={loading}
           variant="available"
           icon={DoorOpen}
+        />
+
+        <SummaryCard
+          title="Charges on books"
+          value={displayAmount(chargesOnBooks)}
+          note={`${data.folios.length} active folio${data.folios.length === 1 ? "" : "s"}`}
+          loading={loading}
+          variant="revenue"
+          icon={FileBarChart}
         />
 
       </div>
@@ -1248,6 +1145,9 @@ export default function Dashboard() {
         <div className="quick-action-list">
           <button className="qa-primary" onClick={() => navigate("/reservations/new")}>
             <Plus size={17} /> New reservation <ArrowRight size={15} />
+          </button>
+          <button onClick={() => navigate("/reservations?status=CHECKED_IN")}>
+            <LogIn size={17} /> Front desk arrivals <ArrowRight size={15} />
           </button>
           <button onClick={() => navigate("/guests")}>
             <ClipboardList size={17} /> View guests <ArrowRight size={15} />
