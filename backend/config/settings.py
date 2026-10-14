@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.rooms',
     'apps.housekeeping',
     'apps.maintenance',
+    'apps.operations',
     'corsheaders',
 ]
 

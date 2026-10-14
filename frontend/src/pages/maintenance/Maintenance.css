@@ -631,6 +631,164 @@
   cursor: pointer;
 }
 
+.maintenance-root > .operations-form-header {
+  width: 100%;
+  max-width: none;
+  margin: 16px 0 18px;
+}
+
+.maintenance-root > .operations-form-header > span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.maintenance-root > .operations-form-header h1 {
+  margin: 7px 0 5px;
+  color: var(--text-h);
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 750;
+}
+
+.maintenance-root > .operations-form-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.maintenance-root > form.operations-form {
+  display: grid;
+  width: 100%;
+  max-width: none;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.maintenance-root .operations-form-section {
+  min-width: 0;
+  margin: 0;
+  padding: 18px 22px 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.035);
+}
+
+.maintenance-root .operations-form-section legend {
+  padding: 0 6px;
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.maintenance-root .operations-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.maintenance-root .operations-field {
+  display: grid !important;
+  min-width: 0;
+  gap: 7px;
+  margin: 0 !important;
+  color: var(--text-h) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.maintenance-root .operations-field small {
+  margin-top: -4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.maintenance-root .operations-field-wide {
+  grid-column: 1 / -1;
+}
+
+.maintenance-root .operations-field input,
+.maintenance-root .operations-field select,
+.maintenance-root .operations-field textarea {
+  min-height: 43px;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--bg) 96%, var(--text)) !important;
+  color: var(--text-h) !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.maintenance-root .operations-field select {
+  cursor: pointer;
+}
+
+.maintenance-root .operations-field textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.maintenance-root .operations-field input:focus,
+.maintenance-root .operations-field select:focus,
+.maintenance-root .operations-field textarea:focus {
+  border-color: var(--accent) !important;
+  background: var(--bg) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent) !important;
+}
+
+.maintenance-root .operations-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 2px;
+}
+
+.maintenance-root .operations-form-actions .btn,
+.maintenance-root .operations-form-actions .btn-ghost {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+.maintenance-root .operations-form-actions .btn {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+@media (max-width: 650px) {
+  .maintenance-root > .operations-form-header h1 {
+    font-size: 24px;
+  }
+
+  .maintenance-root .operations-form-section {
+    padding: 16px 14px 18px;
+  }
+
+  .maintenance-root .operations-form-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .maintenance-root .operations-field-wide {
+    grid-column: auto;
+  }
+
+  .maintenance-root .operations-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+
 /* Responsive */
 
 @media (max-width: 1150px) {

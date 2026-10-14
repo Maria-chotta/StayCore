@@ -35,6 +35,7 @@ function Rooms() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [roomsRaw, setRoomsRaw] = useState([]);
+  const [summary, setSummary] = useState(null);
   const navigate = useNavigate();
   const [roomTypesList, setRoomTypesList] = useState([]);
   const [roomTypesLoading, setRoomTypesLoading] = useState(true);
@@ -68,6 +69,22 @@ function Rooms() {
     load();
     return () => (mounted = false);
   }, [status, roomTypeParam]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadSummary() {
+      try {
+        const res = await api.get('/rooms/summary/');
+        if (mounted) {
+          setSummary(res.data || null);
+        }
+      } catch (err) {
+        if (mounted) setSummary(null);
+      }
+    }
+    loadSummary();
+    return () => (mounted = false);
+  }, []);
 
   // fetch room types from server
   useEffect(()=>{
@@ -128,6 +145,27 @@ function Rooms() {
           </select>
         </div>
       </div>
+
+      {summary && (
+        <div className="rooms-summary-grid">
+          <div className="rooms-summary-card">
+            <span className="rooms-summary-label">Total rooms</span>
+            <strong>{summary.total_rooms ?? rooms.length}</strong>
+          </div>
+          <div className="rooms-summary-card accent-green">
+            <span className="rooms-summary-label">Available</span>
+            <strong>{summary.available ?? 0}</strong>
+          </div>
+          <div className="rooms-summary-card accent-red">
+            <span className="rooms-summary-label">Occupied</span>
+            <strong>{summary.occupied ?? 0}</strong>
+          </div>
+          <div className="rooms-summary-card accent-orange">
+            <span className="rooms-summary-label">Maintenance</span>
+            <strong>{summary.maintenance ?? 0}</strong>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {loading && <div className="rooms-loading">Loading rooms…</div>}

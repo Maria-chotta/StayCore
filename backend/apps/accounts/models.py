@@ -108,7 +108,8 @@ class User(AbstractUser):
                     hotel_ids.append(str(payload_hotel))
 
         if explicit_hotel not in (None, ""):
-            hotel_ids.append(str(explicit_hotel))
+            explicit_hotel_id = getattr(explicit_hotel, "pk", explicit_hotel)
+            hotel_ids.append(str(explicit_hotel_id))
 
         if not hotel_ids:
             return None

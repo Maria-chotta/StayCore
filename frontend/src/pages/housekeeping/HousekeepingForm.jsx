@@ -134,57 +134,60 @@ export default function HousekeepingForm({ mode = 'create' }){
 
   return (
     <div className="housekeeping-root">
-      <h2>{mode === 'create' ? 'Create Housekeeping Task' : 'Edit Housekeeping Task'}</h2>
+      <div className="operations-form-header">
+        <span>ROOM OPERATIONS</span>
+        <h1>{mode === 'create' ? 'Create housekeeping task' : 'Edit housekeeping task'}</h1>
+        <p>Schedule room care and route the work to the right team member.</p>
+      </div>
       {loading && <div>Loading…</div>}
       {error && <div className="form-error">{JSON.stringify(error)}</div>}
       {!loading && (
-        <form onSubmit={handleSubmit}>
-          <label>Room
-            <select name="room" value={form.room} onChange={handleChange}>
-              <option value="">Select room</option>
-              {roomOptions.map(r=> (<option key={r.id} value={r.id}>{r.room_number} — {r.room_type?.name || r.room_type}</option>))}
-            </select>
-            <FieldError errors={fieldErrors.room} />
-          </label>
-
-          <label>Task type
-            <select name="task_type" value={form.task_type} onChange={handleChange}>
-              <option value="CLEANING">Cleaning</option>
-              <option value="DEEP_CLEANING">Deep Cleaning</option>
-              <option value="INSPECTION">Inspection</option>
-              <option value="LINEN_CHANGE">Linen Change</option>
-            </select>
-            <FieldError errors={fieldErrors.task_type} />
-          </label>
-
-          <label>Priority
-            <select name="priority" value={form.priority} onChange={handleChange}>
-              <option value="LOW">Low</option>
-              <option value="NORMAL">Normal</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-            <FieldError errors={fieldErrors.priority} />
-          </label>
-
-          <label>Scheduled for
-            <input type="datetime-local" name="scheduled_for" value={form.scheduled_for || ''} onChange={handleChange} />
-            <FieldError errors={fieldErrors.scheduled_for} />
-          </label>
-
-          <label>Assigned user id
-            <input name="assigned_to" value={form.assigned_to} onChange={handleChange} placeholder="User id (optional)" />
-            <FieldError errors={fieldErrors.assigned_to} />
-          </label>
-
-          <label>Notes
-            <textarea name="notes" value={form.notes} onChange={handleChange} />
-            <FieldError errors={fieldErrors.notes} />
-          </label>
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button className="btn" type="submit" disabled={submitting}>{submitting ? 'Saving…' : (mode === 'create' ? 'Create' : 'Save')}</button>
-            <button type="button" className="btn-ghost" onClick={()=> navigate('/housekeeping')}>Cancel</button>
+        <form className="operations-form" onSubmit={handleSubmit}>
+          <fieldset className="operations-form-section">
+            <legend>Task details</legend>
+            <div className="operations-form-grid">
+              <label className="operations-field">Room
+                <select name="room" value={form.room} onChange={handleChange} required>
+                  <option value="">Select room</option>
+                  {roomOptions.map(r=> (<option key={r.id} value={r.id}>{r.room_number} — {r.room_type?.name || r.room_type}</option>))}
+                </select>
+                <FieldError errors={fieldErrors.room} />
+              </label>
+              <label className="operations-field">Task type
+                <select name="task_type" value={form.task_type} onChange={handleChange}>
+                  <option value="CLEANING">Cleaning</option>
+                  <option value="DEEP_CLEANING">Deep Cleaning</option>
+                  <option value="INSPECTION">Inspection</option>
+                  <option value="LINEN_CHANGE">Linen Change</option>
+                </select>
+                <FieldError errors={fieldErrors.task_type} />
+              </label>
+              <label className="operations-field">Priority
+                <select name="priority" value={form.priority} onChange={handleChange}>
+                  <option value="LOW">Low</option>
+                  <option value="NORMAL">Normal</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+                <FieldError errors={fieldErrors.priority} />
+              </label>
+              <label className="operations-field">Scheduled for
+                <input type="datetime-local" name="scheduled_for" value={form.scheduled_for || ''} onChange={handleChange} />
+                <FieldError errors={fieldErrors.scheduled_for} />
+              </label>
+              <label className="operations-field operations-field-wide">Assigned user ID <small>Optional</small>
+                <input name="assigned_to" value={form.assigned_to} onChange={handleChange} placeholder="Enter staff user ID" />
+                <FieldError errors={fieldErrors.assigned_to} />
+              </label>
+              <label className="operations-field operations-field-wide">Notes <small>Optional</small>
+                <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} />
+                <FieldError errors={fieldErrors.notes} />
+              </label>
+            </div>
+          </fieldset>
+          <div className="operations-form-actions">
+            <button type="button" className="btn-ghost" disabled={submitting} onClick={()=> navigate('/housekeeping')}>Cancel</button>
+            <button className="btn" type="submit" disabled={submitting}>{submitting ? 'Saving…' : (mode === 'create' ? 'Create task' : 'Save changes')}</button>
           </div>
         </form>
       )}

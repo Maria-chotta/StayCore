@@ -27,6 +27,10 @@ export default function ReservationForm({ mode = "create" }) {
   const [hotelOptions, setHotelOptions] = useState([]);
   const [guestOptions, setGuestOptions] = useState([]);
   const [roomOptions, setRoomOptions] = useState([]);
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [savingGuest, setSavingGuest] = useState(false);
+  const [guestCreateError, setGuestCreateError] = useState("");
+  const [newGuest, setNewGuest] = useState({ first_name: "", last_name: "", email: "", phone: "" });
 
   const [form, setForm] = useState({
     hotel: "",
@@ -112,6 +116,10 @@ export default function ReservationForm({ mode = "create" }) {
 
   function handleChange(e) {
     const { name, value } = e.target;
+    if (name === "hotel") {
+      setShowGuestForm(false);
+      setGuestCreateError("");
+    }
     setForm((s) => {
       const next = { ...s, [name]: value };
 
@@ -144,6 +152,44 @@ export default function ReservationForm({ mode = "create" }) {
     });
     setFieldErrors((fe) => ({ ...fe, [name]: undefined }));
     setError(null);
+  }
+
+  async function handleCreateGuest(e) {
+    e.preventDefault();
+    if (!form.hotel) {
+      setGuestCreateError("Select a hotel before adding a guest.");
+      return;
+    }
+    if (!newGuest.first_name.trim() || !newGuest.last_name.trim()) {
+      setGuestCreateError("First and last name are required.");
+      return;
+    }
+
+    setSavingGuest(true);
+    setGuestCreateError("");
+    try {
+      const response = await api.post("/guests/", {
+        hotel: Number(form.hotel),
+        first_name: newGuest.first_name.trim(),
+        last_name: newGuest.last_name.trim(),
+        email: newGuest.email.trim(),
+        phone: newGuest.phone.trim(),
+      });
+      const guest = response.data;
+      setGuestOptions((current) => [...current, guest]);
+      setForm((current) => ({ ...current, guest: String(guest.id) }));
+      setNewGuest({ first_name: "", last_name: "", email: "", phone: "" });
+      setShowGuestForm(false);
+    } catch (err) {
+      const data = err.response?.data;
+      setGuestCreateError(
+        data && typeof data === "object"
+          ? Object.entries(data).map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`).join(" ")
+          : String(data || err.message || "Could not add guest.")
+      );
+    } finally {
+      setSavingGuest(false);
+    }
   }
 
   function validate() {
@@ -246,9 +292,10 @@ export default function ReservationForm({ mode = "create" }) {
               <FieldError errors={fieldErrors.hotel} />
             </label>
 
-            <label className="res-field">
-              <span>Guest</span>
-              <select name="guest" value={form.guest} onChange={handleChange}>
+            <div className="res-field">
+              <label htmlFor="reservation-guest"><span>Guest</span></label>
+              <div className="res-guest-picker">
+              <select id="reservation-guest" name="guest" value={form.guest} onChange={handleChange}>
                 <option value="">Select guest</option>
                 {hotelGuests.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -256,8 +303,13 @@ export default function ReservationForm({ mode = "create" }) {
                   </option>
                 ))}
               </select>
+                <button className="btn btn-ghost" type="button" onClick={() => { setShowGuestForm((visible) => !visible); setGuestCreateError(""); }} disabled={!form.hotel || savingGuest}>
+                  {showGuestForm ? "Cancel" : "Add guest"}
+                </button>
+              </div>
               <FieldError errors={fieldErrors.guest} />
-            </label>
+              {!form.hotel && <small className="res-guest-hint">Choose a hotel first to add or select its guests.</small>}
+            </div>
 
             <label className="res-field">
               <span>Room</span>
@@ -308,6 +360,25 @@ export default function ReservationForm({ mode = "create" }) {
               <FieldError errors={fieldErrors.notes} />
             </label>
           </div>
+
+          {showGuestForm && (
+            <section className="res-guest-create" aria-label="Add a guest">
+              <div className="res-guest-create-heading">
+                <strong>New guest</strong>
+                <span>Added to the selected hotel and linked to this reservation.</span>
+              </div>
+              {guestCreateError && <div className="field-error" role="alert">{guestCreateError}</div>}
+              <div className="res-guest-create-fields">
+                <label className="res-field"><span>First name</span><input value={newGuest.first_name} onChange={(e) => setNewGuest((current) => ({ ...current, first_name: e.target.value }))} disabled={savingGuest} required /></label>
+                <label className="res-field"><span>Last name</span><input value={newGuest.last_name} onChange={(e) => setNewGuest((current) => ({ ...current, last_name: e.target.value }))} disabled={savingGuest} required /></label>
+                <label className="res-field"><span>Email</span><input type="email" value={newGuest.email} onChange={(e) => setNewGuest((current) => ({ ...current, email: e.target.value }))} disabled={savingGuest} /></label>
+                <label className="res-field"><span>Phone</span><input type="tel" value={newGuest.phone} onChange={(e) => setNewGuest((current) => ({ ...current, phone: e.target.value }))} disabled={savingGuest} /></label>
+              </div>
+              <button className="btn btn-primary" type="button" onClick={handleCreateGuest} disabled={savingGuest}>
+                {savingGuest ? "Adding guest…" : "Add and select guest"}
+              </button>
+            </section>
+          )}
 
           {nights > 0 && (
             <div className="res-summary-row">

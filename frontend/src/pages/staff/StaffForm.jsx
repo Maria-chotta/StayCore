@@ -395,14 +395,15 @@ export default function StaffForm({ mode = "create" }) {
                 <FieldError error={fieldErrors.role} />
               </label>
 
-              <label className="staff-checkbox">
+              <label className="staff-checkbox staff-active-toggle">
                 <input
                   type="checkbox"
                   name="is_active"
                   checked={form.is_active}
                   onChange={handleChange}
                 />
-                <span>Active account</span>
+                <span className="staff-active-copy"><strong>Active account</strong><small>Allow this team member to access StayCore.</small></span>
+                <span className="staff-toggle-track" aria-hidden="true"><span /></span>
                 <FieldError error={fieldErrors.is_active} />
               </label>
             </div>
