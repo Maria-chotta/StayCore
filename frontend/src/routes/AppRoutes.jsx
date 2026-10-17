@@ -41,9 +41,23 @@ import FolioForm from "../pages/billing/FolioForm";
 import Reports from "../pages/reports/Reports";
 import PortfolioOverview from "../pages/portfolio/PortfolioOverview";
 
+import OperationsCalendar from "../pages/operations/OperationsCalendar";
+import CashDrawer from "../pages/operations/CashDrawer";
+import Inventory from "../pages/operations/Inventory";
+import Production from "../pages/operations/Production";
+import Marketing from "../pages/operations/Marketing";
+import GuestFeedback from "../pages/operations/GuestFeedback";
+import IncidentReports from "../pages/operations/IncidentReports";
+
 import Staff from "../pages/staff/Staff";
 import StaffForm from "../pages/staff/StaffForm";
 import StaffDetail from "../pages/staff/StaffDetail";
+import GroupBookings from "../pages/groups/GroupBookings";
+import GroupBookingForm from "../pages/groups/GroupBookingForm";
+import EventPackages from "../pages/event-packages/EventPackages";
+import EventPackageForm from "../pages/event-packages/EventPackageForm";
+import RatePlans from "../pages/rate-plans/RatePlans";
+import RatePlanForm from "../pages/rate-plans/RatePlanForm";
 
 
 function ProtectedPage({ children }) {
@@ -107,6 +121,69 @@ function AppRoutes() {
         element={
           <ProtectedPage>
             <PortfolioOverview />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedPage>
+            <OperationsCalendar />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/cash-drawer"
+        element={
+          <ProtectedPage>
+            <CashDrawer />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/inventory"
+        element={
+          <ProtectedPage>
+            <Inventory />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/production"
+        element={
+          <ProtectedPage>
+            <Production />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/marketing"
+        element={
+          <ProtectedPage>
+            <Marketing />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/guest-feedback"
+        element={
+          <ProtectedPage>
+            <GuestFeedback />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/incident-reports"
+        element={
+          <ProtectedPage>
+            <IncidentReports />
           </ProtectedPage>
         }
       />
@@ -192,6 +269,22 @@ function AppRoutes() {
           </ProtectedPage>
         }
       />
+
+      {/* =========================
+          GROUPS, EVENTS, AND RATES
+      ========================== */}
+
+      <Route path="/groups" element={<ProtectedPage><GroupBookings /></ProtectedPage>} />
+      <Route path="/groups/new" element={<ProtectedPage><GroupBookingForm mode="create" /></ProtectedPage>} />
+      <Route path="/groups/:id/edit" element={<ProtectedPage><GroupBookingForm mode="edit" /></ProtectedPage>} />
+
+      <Route path="/event-packages" element={<ProtectedPage><EventPackages /></ProtectedPage>} />
+      <Route path="/event-packages/new" element={<ProtectedPage><EventPackageForm mode="create" /></ProtectedPage>} />
+      <Route path="/event-packages/:id/edit" element={<ProtectedPage><EventPackageForm mode="edit" /></ProtectedPage>} />
+
+      <Route path="/rate-plans" element={<ProtectedPage><RatePlans /></ProtectedPage>} />
+      <Route path="/rate-plans/new" element={<ProtectedPage><RatePlanForm mode="create" /></ProtectedPage>} />
+      <Route path="/rate-plans/:id/edit" element={<ProtectedPage><RatePlanForm mode="edit" /></ProtectedPage>} />
 
 
       {/* =========================

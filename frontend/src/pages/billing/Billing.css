@@ -1,5 +1,6 @@
 .billing-root {
-  max-width: 1180px;
+  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
   color: var(--text-h);
 }
@@ -509,5 +510,140 @@
   .folio-create-form select,
   .folio-create-form textarea {
     transition: none;
+  }
+}
+
+.billing-header > div:first-child {
+  min-width: 0;
+}
+
+.folio-form-eyebrow {
+  display: block;
+  margin-top: 16px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.billing-header p {
+  margin: 5px 0 0;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.folio-create-form {
+  width: 100%;
+  max-width: none;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.folio-form-section {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  margin: 0;
+  padding: 20px 22px 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(24, 39, 31, 0.035);
+}
+
+.folio-form-section legend {
+  padding: 0 6px;
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.folio-form-section label {
+  gap: 7px;
+  color: var(--text-h);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.folio-form-section label small {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.folio-form-section select,
+.folio-form-section textarea {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d9e3df;
+  border-radius: 8px;
+  background: #fbfdfc;
+  color: var(--text-h);
+  font-size: 13px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.folio-form-section select {
+  cursor: pointer;
+}
+
+.folio-form-section textarea {
+  min-height: 84px;
+}
+
+.folio-form-section select:hover,
+.folio-form-section textarea:hover {
+  border-color: #bdcec7;
+}
+
+.folio-form-section select:focus,
+.folio-form-section textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.folio-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.folio-form-actions .btn,
+.folio-form-actions .btn-ghost {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+.folio-form-actions .btn {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.folio-form-actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 650px) {
+  .folio-form-section {
+    padding: 17px 15px 18px;
+  }
+
+  .folio-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+  }
+
+  .folio-form-actions .btn,
+  .folio-form-actions .btn-ghost {
+    width: 100%;
   }
 }

@@ -139,52 +139,69 @@ export default function MaintenanceForm({ mode = 'create' }){
 
   return (
     <div className="maintenance-root">
-      <h2>{mode === 'create' ? 'Create Maintenance Request' : 'Edit Maintenance Request'}</h2>
+      <div className="operations-form-header">
+        <span>PROPERTY OPERATIONS</span>
+        <h1>{mode === 'create' ? 'Create maintenance request' : 'Edit maintenance request'}</h1>
+        <p>Record the issue, set its urgency, and assign follow-up.</p>
+      </div>
       {loading && <div>Loading…</div>}
       {error && <div className="form-error">{JSON.stringify(error)}</div>}
       {!loading && (
-        <form onSubmit={handleSubmit}>
-          <label>Room
-            <select name="room" value={form.room} onChange={handleChange}>
-              <option value="">Select room</option>
-              {roomOptions.map(r=> (<option key={r.id} value={r.id}>{r.room_number} — {r.room_type?.name || r.room_type}</option>))}
-            </select>
-            <FieldError errors={fieldErrors.room} />
-          </label>
-
-          <label>Title
-            <input name="title" value={form.title} onChange={handleChange} />
-            <FieldError errors={fieldErrors.title} />
-          </label>
-
-          <label>Description
-            <textarea name="description" value={form.description} onChange={handleChange} />
-            <FieldError errors={fieldErrors.description} />
-          </label>
-
-          <label>Priority
-            <select name="priority" value={form.priority} onChange={handleChange}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-            <FieldError errors={fieldErrors.priority} />
-          </label>
-
-          <label>Assigned user id
-            <input name="assigned_to" value={form.assigned_to} onChange={handleChange} placeholder="User id (optional)" />
-            <FieldError errors={fieldErrors.assigned_to} />
-          </label>
-
-          <label>Notes
-            <textarea name="notes" value={form.notes} onChange={handleChange} />
-            <FieldError errors={fieldErrors.notes} />
-          </label>
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button className="btn" type="submit" disabled={submitting}>{submitting ? 'Saving…' : (mode === 'create' ? 'Create' : 'Save')}</button>
-            <button type="button" className="btn-ghost" onClick={()=> navigate('/maintenance')}>Cancel</button>
+        <form className="operations-form" onSubmit={handleSubmit}>
+          <fieldset className="operations-form-section">
+            <legend>Issue details</legend>
+            <div className="operations-form-grid">
+              <label className="operations-field">Room
+                <select name="room" value={form.room} onChange={handleChange} required>
+                  <option value="">Select room</option>
+                  {roomOptions.map(r=> (<option key={r.id} value={r.id}>{r.room_number} — {r.room_type?.name || r.room_type}</option>))}
+                </select>
+                <FieldError errors={fieldErrors.room} />
+              </label>
+              <label className="operations-field">Issue title
+                <input name="title" value={form.title} onChange={handleChange} required />
+                <FieldError errors={fieldErrors.title} />
+              </label>
+              <label className="operations-field operations-field-wide">Description <small>Optional</small>
+                <textarea name="description" value={form.description} onChange={handleChange} rows={3} />
+                <FieldError errors={fieldErrors.description} />
+              </label>
+            </div>
+          </fieldset>
+          <fieldset className="operations-form-section">
+            <legend>Follow-up</legend>
+            <div className="operations-form-grid">
+              <label className="operations-field">Priority
+                <select name="priority" value={form.priority} onChange={handleChange}>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+                <FieldError errors={fieldErrors.priority} />
+              </label>
+              <label className="operations-field">Status
+                <select name="status" value={form.status} onChange={handleChange}>
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+                <FieldError errors={fieldErrors.status} />
+              </label>
+              <label className="operations-field operations-field-wide">Assigned user ID <small>Optional</small>
+                <input name="assigned_to" value={form.assigned_to} onChange={handleChange} placeholder="Enter staff user ID" />
+                <FieldError errors={fieldErrors.assigned_to} />
+              </label>
+              <label className="operations-field operations-field-wide">Notes <small>Optional</small>
+                <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} />
+                <FieldError errors={fieldErrors.notes} />
+              </label>
+            </div>
+          </fieldset>
+          <div className="operations-form-actions">
+            <button type="button" className="btn-ghost" disabled={submitting} onClick={()=> navigate('/maintenance')}>Cancel</button>
+            <button className="btn" type="submit" disabled={submitting}>{submitting ? 'Saving…' : (mode === 'create' ? 'Create request' : 'Save changes')}</button>
           </div>
         </form>
       )}

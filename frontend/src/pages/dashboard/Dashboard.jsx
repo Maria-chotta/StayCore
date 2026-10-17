@@ -546,6 +546,12 @@ export default function Dashboard() {
     housekeeping: [],
     maintenance: [],
     folios: [],
+    inventory: [],
+    production: [],
+    campaigns: [],
+    feedback: [],
+    incidents: [],
+    cashShifts: [],
   });
 
 
@@ -565,6 +571,12 @@ export default function Dashboard() {
         housekeepingRes,
         maintenanceRes,
         foliosRes,
+        inventoryRes,
+        productionRes,
+        campaignRes,
+        feedbackRes,
+        incidentsRes,
+        cashShiftRes,
       ] = await Promise.all([
         api.get("/rooms/"),
         api.get("/reservations/"),
@@ -572,6 +584,12 @@ export default function Dashboard() {
         api.get("/housekeeping/"),
         api.get("/maintenance/"),
         api.get("/folios/"),
+        api.get("/inventory-items/"),
+        api.get("/production-records/"),
+        api.get("/marketing-campaigns/"),
+        api.get("/guest-feedback/"),
+        api.get("/incident-reports/"),
+        api.get("/cash-drawer-shifts/"),
       ]);
 
       const rooms = asList(roomsRes.data);
@@ -588,6 +606,12 @@ export default function Dashboard() {
         housekeeping: asList(housekeepingRes.data).filter((item) => hotelIds.has(String(item.hotel))),
         maintenance: asList(maintenanceRes.data).filter((item) => hotelIds.has(String(item.hotel))),
         folios: asList(foliosRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        inventory: asList(inventoryRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        production: asList(productionRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        campaigns: asList(campaignRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        feedback: asList(feedbackRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        incidents: asList(incidentsRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+        cashShifts: asList(cashShiftRes.data).filter((item) => hotelIds.has(String(item.hotel))),
       });
     } catch (err) {
       console.error("Dashboard loading error:", err);
@@ -644,6 +668,26 @@ export default function Dashboard() {
         {}
       );
 
+    const lowStockItems = data.inventory.filter(
+      (item) => Number(item.quantity || 0) <= Number(item.reorder_level || 0)
+    ).length;
+
+    const openIssues = data.incidents.filter(
+      (item) => !["CLOSED"].includes(item.status)
+    ).length;
+
+    const unresolvedFeedback = data.feedback.filter(
+      (item) => !["RESOLVED"].includes(item.status)
+    ).length;
+
+    const openCashShifts = data.cashShifts.filter(
+      (item) => !["CLOSED"].includes(item.status)
+    ).length;
+
+    const activeCampaigns = data.campaigns.filter(
+      (item) => ["ACTIVE", "PLANNED"].includes(item.status)
+    ).length;
+
     return {
   roomCounts,
   reservationCounts,
@@ -661,6 +705,13 @@ export default function Dashboard() {
     all[item.status] = (all[item.status] || 0) + 1;
     return all;
   }, {}),
+
+  lowStockItems,
+  openIssues,
+  unresolvedFeedback,
+  openCashShifts,
+  activeCampaigns,
+  operationsPulse: lowStockItems + openIssues + unresolvedFeedback + openCashShifts + activeCampaigns,
 };
 
   }, [data]);
@@ -881,6 +932,15 @@ export default function Dashboard() {
           loading={loading}
           variant="revenue"
           icon={FileBarChart}
+        />
+
+        <SummaryCard
+          title="Operations pulse"
+          value={metrics.operationsPulse}
+          note={`${metrics.lowStockItems} low-stock • ${metrics.openIssues} open incidents • ${metrics.unresolvedFeedback} feedback`}
+          loading={loading}
+          variant="operations"
+          icon={ClipboardList}
         />
 
       </div>

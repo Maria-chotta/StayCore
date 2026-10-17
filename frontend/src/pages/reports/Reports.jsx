@@ -5,7 +5,8 @@ import "./Reports.css";
 const asList = (data) => Array.isArray(data) ? data : data?.results || [];
 const display = (value) => String(value || "—").replaceAll("_", " ");
 const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-const reportOptions = ["Reservations", "Rooms", "Guests", "Maintenance", "Housekeeping", "Billing"];
+const money = (value) => Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const reportOptions = ["Reservations", "Rooms", "Guests", "Maintenance", "Housekeeping", "Billing", "Operations"];
 
 function exportCsv(name, headers, rows) {
   const text = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
@@ -13,11 +14,39 @@ function exportCsv(name, headers, rows) {
 }
 export default function Reports() {
   const [type, setType] = useState("Reservations"); const [status, setStatus] = useState(""); const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [data, setData] = useState({ rooms: [], reservations: [], guests: [], maintenance: [], housekeeping: [], folios: [] });
+  const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [data, setData] = useState({ rooms: [], reservations: [], guests: [], maintenance: [], housekeeping: [], folios: [], inventory: [], production: [], campaigns: [], feedback: [], incidents: [], cashShifts: [], cashEntries: [] });
   const load = useCallback(async () => { setLoading(true); setError(""); try {
-    const [roomsRes, reservationsRes, guestsRes, maintenanceRes, housekeepingRes, foliosRes] = await Promise.all([api.get("/rooms/"), api.get("/reservations/"), api.get("/guests/"), api.get("/maintenance/"), api.get("/housekeeping/"), api.get("/folios/")]);
+    const [roomsRes, reservationsRes, guestsRes, maintenanceRes, housekeepingRes, foliosRes, inventoryRes, productionRes, campaignsRes, feedbackRes, incidentsRes, cashShiftRes, cashEntryRes] = await Promise.all([
+      api.get("/rooms/"),
+      api.get("/reservations/"),
+      api.get("/guests/"),
+      api.get("/maintenance/"),
+      api.get("/housekeeping/"),
+      api.get("/folios/"),
+      api.get("/inventory-items/"),
+      api.get("/production-records/"),
+      api.get("/marketing-campaigns/"),
+      api.get("/guest-feedback/"),
+      api.get("/incident-reports/"),
+      api.get("/cash-drawer-shifts/"),
+      api.get("/cash-drawer-entries/"),
+    ]);
     const rooms = asList(roomsRes.data); const guests = asList(guestsRes.data); const hotelIds = new Set([...rooms.map((item) => String(item.hotel)), ...guests.map((item) => String(item.hotel))]);
-    setData({ rooms, reservations: asList(reservationsRes.data), guests, maintenance: asList(maintenanceRes.data).filter((item) => hotelIds.has(String(item.hotel))), housekeeping: asList(housekeepingRes.data).filter((item) => hotelIds.has(String(item.hotel))), folios: asList(foliosRes.data).filter((item) => hotelIds.has(String(item.hotel))) });
+    setData({
+      rooms,
+      reservations: asList(reservationsRes.data),
+      guests,
+      maintenance: asList(maintenanceRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+      housekeeping: asList(housekeepingRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+      folios: asList(foliosRes.data).filter((item) => hotelIds.has(String(item.hotel))),
+      inventory: asList(inventoryRes.data),
+      production: asList(productionRes.data),
+      campaigns: asList(campaignsRes.data),
+      feedback: asList(feedbackRes.data),
+      incidents: asList(incidentsRes.data),
+      cashShifts: asList(cashShiftRes.data),
+      cashEntries: asList(cashEntryRes.data),
+    });
   } catch (err) { setError(typeof err.response?.data === "string" ? err.response.data : "Reports data could not be loaded."); } finally { setLoading(false); } }, []);
   useEffect(() => { load(); }, [load]);
   const roomMap = useMemo(() => new Map(data.rooms.map((item) => [String(item.id), item])), [data.rooms]);
@@ -31,10 +60,27 @@ export default function Reports() {
     if (type === "Maintenance") { headers = ["Request", "Room", "Priority", "Status", "Assigned staff", "Reported"]; list = data.maintenance.map((item) => [item.title, roomMap.get(String(item.room))?.room_number || (item.room ? `Room #${item.room}` : "—"), display(item.priority), display(item.status), item.assigned_to ? `Staff #${item.assigned_to}` : "Unassigned", item.reported_at]); }
     if (type === "Housekeeping") { headers = ["Task", "Room", "Priority", "Status", "Assigned staff", "Scheduled"]; list = data.housekeeping.map((item) => [display(item.task_type), roomMap.get(String(item.room))?.room_number || `Room #${item.room}`, display(item.priority), display(item.status), item.assigned_to ? `Staff #${item.assigned_to}` : "Unassigned", item.scheduled_for || item.created_at]); }
     if (type === "Billing") { headers = ["Folio", "Guest", "Reservation", "Charges", "Payments", "Balance", "Status"]; list = data.folios.map((item) => { const guest = guestMap.get(String(item.guest)); const reservation = reservationMap.get(String(item.reservation)); return [`#${item.id}`, guest ? `${guest.first_name} ${guest.last_name}` : `Guest #${item.guest}`, reservation ? `#${reservation.id} / ${reservation.room_details?.room_number || `Room #${reservation.room}`}` : `#${item.reservation}`, item.total_charges, item.total_paid, item.balance, display(item.status)]; }); }
-    return { headers, list: list.filter((row) => (!status || String(row[row.length - 1]).replaceAll(" ", "_").toUpperCase() === status) && (!q || row.join(" ").toLowerCase().includes(q))) };
+    if (type === "Operations") {
+      headers = ["Module", "Name", "Category / Location", "Value", "Status", "Hotel"];
+      list = [
+        ...data.inventory.map((item) => ["Inventory", item.name, item.category || "Stock", `${item.quantity} ${item.unit || "each"}`, item.is_active ? "Active" : "Inactive", `Hotel #${item.hotel}`]),
+        ...data.production.map((item) => ["Production", item.name, item.outlet || "Kitchen", `${item.quantity} ${item.unit || "servings"}`, "Recorded", `Hotel #${item.hotel}`]),
+        ...data.campaigns.map((item) => ["Marketing", item.name, item.channel || "Campaign", money(item.budget), item.status, `Hotel #${item.hotel}`]),
+        ...data.incidents.map((item) => ["Security", item.incident_type, item.location, item.police_reference || "No ref", item.status, `Hotel #${item.hotel}`]),
+        ...data.feedback.map((item) => ["Guest feedback", item.category || "General", item.comment || "No comment", item.rating ? `${item.rating}/5` : "—", item.status, `Hotel #${item.hotel}`]),
+        ...data.cashShifts.map((item) => ["Cash drawer", `Shift #${item.id}`, item.status, money(item.opening_cash), item.status, `Hotel #${item.hotel}`]),
+      ];
+    }
+    return { headers, list: list.filter((row) => {
+      const statusIndex = headers.indexOf("Status");
+      const rowStatus = statusIndex >= 0 ? row[statusIndex] : row[row.length - 1];
+      const matchesStatus = !status || String(rowStatus).replaceAll(" ", "_").toUpperCase() === status;
+      const matchesQuery = !q || row.join(" ").toLowerCase().includes(q);
+      return matchesStatus && matchesQuery;
+    }) };
   }, [data, guestMap, query, reservationMap, roomMap, status, type]);
-  const statusOptions = type === "Reservations" ? ["PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW"] : type === "Rooms" ? ["AVAILABLE", "OCCUPIED", "DIRTY", "CLEANING", "MAINTENANCE", "OUT_OF_ORDER"] : type === "Maintenance" ? ["OPEN", "IN_PROGRESS", "RESOLVED", "CANCELLED"] : type === "Housekeeping" ? ["PENDING", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] : type === "Billing" ? ["OPEN", "PARTIALLY_PAID", "PAID", "VOID"] : [];
-  const summary = type === "Reservations" ? `${data.reservations.length} reservations across ${Object.keys(data.reservations.reduce((all, item) => ({ ...all, [item.status]: true }), {})).length} statuses` : `${rows.list.length} matching record${rows.list.length === 1 ? "" : "s"}`;
+  const statusOptions = type === "Reservations" ? ["PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW"] : type === "Rooms" ? ["AVAILABLE", "OCCUPIED", "DIRTY", "CLEANING", "MAINTENANCE", "OUT_OF_ORDER"] : type === "Maintenance" ? ["OPEN", "IN_PROGRESS", "RESOLVED", "CANCELLED"] : type === "Housekeeping" ? ["PENDING", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] : type === "Billing" ? ["OPEN", "PARTIALLY_PAID", "PAID", "VOID"] : type === "Operations" ? ["ACTIVE", "OPEN", "PLANNED", "IN_PROGRESS", "RESOLVED", "CLOSED", "NEW"] : [];
+  const summary = type === "Reservations" ? `${data.reservations.length} reservations across ${Object.keys(data.reservations.reduce((all, item) => ({ ...all, [item.status]: true }), {})).length} statuses` : type === "Operations" ? `${data.inventory.length + data.production.length + data.campaigns.length + data.incidents.length + data.feedback.length + data.cashShifts.length} operation records` : `${rows.list.length} matching record${rows.list.length === 1 ? "" : "s"}`;
   return <div className="reports-root"><div className="reports-header"><div><h1>Reports</h1><p>Generated from the current data available to your account.</p></div><button className="btn-ghost small" disabled={loading} onClick={load}>{loading ? "Refreshing…" : "Refresh"}</button></div>
     {error && <div className="reports-error">{error} <button className="btn-ghost small" onClick={load}>Try again</button></div>}
     <div className="report-controls"><label>Report<select value={type} onChange={(event) => { setType(event.target.value); setStatus(""); }}><>{reportOptions.map((item) => <option key={item}>{item}</option>)}</></select></label>{statusOptions.length > 0 && <label>Status<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All statuses</option>{statusOptions.map((item) => <option key={item} value={item}>{display(item)}</option>)}</select></label>}<label className="report-search">Search<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter loaded data" /></label><button className="btn" disabled={loading || rows.list.length === 0} onClick={() => exportCsv(type.toLowerCase(), rows.headers, rows.list)}>Export CSV</button></div>
