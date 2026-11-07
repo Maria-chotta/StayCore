@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class GroupBooking(models.Model):
@@ -14,6 +17,11 @@ class GroupBooking(models.Model):
         "hotels.Hotel",
         on_delete=models.CASCADE,
         related_name="group_bookings"
+    )
+    reservations = models.ManyToManyField(
+        "reservations.Reservation",
+        related_name="group_bookings",
+        blank=True,
     )
 
     name = models.CharField(max_length=200)
@@ -55,6 +63,81 @@ class EventPackage(models.Model):
         return self.name
 
 
+class ScheduledEvent(models.Model):
+
+    class Status(models.TextChoices):
+        PLANNED = "PLANNED", "Planned"
+        CONFIRMED = "CONFIRMED", "Confirmed"
+        COMPLETED = "COMPLETED", "Completed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    hotel = models.ForeignKey(
+        "hotels.Hotel",
+        on_delete=models.CASCADE,
+        related_name="scheduled_events",
+    )
+    package = models.ForeignKey(
+        EventPackage,
+        on_delete=models.SET_NULL,
+        related_name="scheduled_events",
+        blank=True,
+        null=True,
+    )
+    name = models.CharField(max_length=200)
+    venue = models.CharField(max_length=200)
+    start_at = models.DateTimeField()
+    end_at = models.DateTimeField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PLANNED,
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class EventParticipant(models.Model):
+
+    class Status(models.TextChoices):
+        INVITED = "INVITED", "Invited"
+        CONFIRMED = "CONFIRMED", "Confirmed"
+        DECLINED = "DECLINED", "Declined"
+        ATTENDED = "ATTENDED", "Attended"
+
+    event = models.ForeignKey(
+        ScheduledEvent,
+        on_delete=models.CASCADE,
+        related_name="participants",
+    )
+    name = models.CharField(max_length=200)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.INVITED,
+    )
+
+
+class EventCharge(models.Model):
+    event = models.ForeignKey(
+        ScheduledEvent,
+        on_delete=models.CASCADE,
+        related_name="charges",
+    )
+    description = models.CharField(max_length=200)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    @property
+    def total(self):
+        return self.quantity * self.unit_price
+
+
 class RatePlan(models.Model):
 
     class Type(models.TextChoices):
@@ -62,6 +145,13 @@ class RatePlan(models.Model):
         WEEKEND = "WEEKEND", "Weekend"
         SPECIAL = "SPECIAL", "Special"
         CORPORATE = "CORPORATE", "Corporate"
+
+    class MealPlan(models.TextChoices):
+        ROOM_ONLY = "ROOM_ONLY", "Room only"
+        BREAKFAST = "BREAKFAST", "Breakfast included"
+        HALF_BOARD = "HALF_BOARD", "Half board"
+        FULL_BOARD = "FULL_BOARD", "Full board"
+        ALL_INCLUSIVE = "ALL_INCLUSIVE", "All inclusive"
 
     hotel = models.ForeignKey(
         "hotels.Hotel",
@@ -77,6 +167,18 @@ class RatePlan(models.Model):
         default=Type.SPECIAL,
     )
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    meal_plan = models.CharField(
+        max_length=20,
+        choices=MealPlan.choices,
+        default=MealPlan.ROOM_ONLY,
+    )
+    cancellation_deadline_hours = models.PositiveIntegerField(default=24)
+    cancellation_fee_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("100.00"))],
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)

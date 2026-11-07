@@ -56,8 +56,15 @@ import GroupBookings from "../pages/groups/GroupBookings";
 import GroupBookingForm from "../pages/groups/GroupBookingForm";
 import EventPackages from "../pages/event-packages/EventPackages";
 import EventPackageForm from "../pages/event-packages/EventPackageForm";
+import ScheduledEvents from "../pages/events/ScheduledEvents";
+import ScheduledEventForm from "../pages/events/ScheduledEventForm";
 import RatePlans from "../pages/rate-plans/RatePlans";
 import RatePlanForm from "../pages/rate-plans/RatePlanForm";
+import HouseAccounts from "../pages/finance/HouseAccounts";
+import CloseCalendar from "../pages/finance/CloseCalendar";
+import Accounting from "../pages/finance/Accounting";
+import AvailabilityMatrix from "../pages/availability/AvailabilityMatrix";
+import Utilities from "../pages/operations/Utilities";
 
 
 function ProtectedPage({ children }) {
@@ -130,6 +137,24 @@ function AppRoutes() {
         element={
           <ProtectedPage>
             <OperationsCalendar />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/availability"
+        element={
+          <ProtectedPage>
+            <AvailabilityMatrix />
+          </ProtectedPage>
+        }
+      />
+
+      <Route
+        path="/utilities"
+        element={
+          <ProtectedPage>
+            <Utilities />
           </ProtectedPage>
         }
       />
@@ -282,9 +307,17 @@ function AppRoutes() {
       <Route path="/event-packages/new" element={<ProtectedPage><EventPackageForm mode="create" /></ProtectedPage>} />
       <Route path="/event-packages/:id/edit" element={<ProtectedPage><EventPackageForm mode="edit" /></ProtectedPage>} />
 
+      <Route path="/events" element={<ProtectedPage><ScheduledEvents /></ProtectedPage>} />
+      <Route path="/events/new" element={<ProtectedPage><ScheduledEventForm mode="create" /></ProtectedPage>} />
+      <Route path="/events/:id/edit" element={<ProtectedPage><ScheduledEventForm mode="edit" /></ProtectedPage>} />
+
       <Route path="/rate-plans" element={<ProtectedPage><RatePlans /></ProtectedPage>} />
       <Route path="/rate-plans/new" element={<ProtectedPage><RatePlanForm mode="create" /></ProtectedPage>} />
       <Route path="/rate-plans/:id/edit" element={<ProtectedPage><RatePlanForm mode="edit" /></ProtectedPage>} />
+
+      <Route path="/house-accounts" element={<ProtectedPage><HouseAccounts /></ProtectedPage>} />
+      <Route path="/close-calendar" element={<ProtectedPage><CloseCalendar /></ProtectedPage>} />
+      <Route path="/accounting" element={<ProtectedPage><Accounting /></ProtectedPage>} />
 
 
       {/* =========================

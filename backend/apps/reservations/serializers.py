@@ -5,6 +5,9 @@ from apps.guests.models import Guest
 from apps.rooms.models import Room, RoomType
 from apps.billing.models import Folio
 from apps.accounts.models import StaffMembership
+from apps.operations.models import MarketingCampaign
+from apps.accounting.services import ensure_business_day_open, ensure_business_date_range_open, hotel_local_date
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -67,6 +70,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             "guest_details",
             "room",
             "room_details",
+            "booking_source",
+            "marketing_campaign",
             "check_in_date",
             "check_out_date",
             "actual_check_in",
@@ -148,6 +153,17 @@ class ReservationSerializer(serializers.ModelSerializer):
                     )
                 })
 
+        marketing_campaign = attrs.get(
+            "marketing_campaign",
+            self.instance.marketing_campaign if self.instance else None,
+        )
+        if marketing_campaign and (
+            hotel is None or marketing_campaign.hotel_id != hotel.id
+        ):
+            raise serializers.ValidationError({
+                "marketing_campaign": "The campaign must belong to the reservation hotel."
+            })
+
         # Check room availability for overlapping reservations.
         if (
             room
@@ -174,5 +190,22 @@ class ReservationSerializer(serializers.ModelSerializer):
                         "for the selected dates."
                     )
                 })
+
+        booking_fields = {"hotel", "room", "check_in_date", "check_out_date"}
+        if hotel and booking_fields.intersection(attrs) and check_in_date and check_out_date:
+            try:
+                ensure_business_date_range_open(hotel, check_in_date, check_out_date)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict) from exc
+        if (
+            hotel
+            and self.instance
+            and "status" in attrs
+            and attrs["status"] != self.instance.status
+        ):
+            try:
+                ensure_business_day_open(hotel, hotel_local_date(hotel))
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict) from exc
 
         return attrs

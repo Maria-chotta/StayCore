@@ -27,6 +27,7 @@ export default function ReservationForm({ mode = "create" }) {
   const [hotelOptions, setHotelOptions] = useState([]);
   const [guestOptions, setGuestOptions] = useState([]);
   const [roomOptions, setRoomOptions] = useState([]);
+  const [campaignOptions, setCampaignOptions] = useState([]);
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [savingGuest, setSavingGuest] = useState(false);
   const [guestCreateError, setGuestCreateError] = useState("");
@@ -43,21 +44,25 @@ export default function ReservationForm({ mode = "create" }) {
     special_requests: "",
     notes: "",
     status: "PENDING",
+    booking_source: "DIRECT",
+    marketing_campaign: "",
   });
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [hRes, gRes, rRes] = await Promise.all([
+        const [hRes, gRes, rRes, cRes] = await Promise.all([
           api.get("/hotels/"),
           api.get("/guests/"),
           api.get("/rooms/"),
+          api.get("/marketing-campaigns/"),
         ]);
         if (!mounted) return;
         setHotelOptions(asList(hRes.data));
         setGuestOptions(asList(gRes.data));
         setRoomOptions(asList(rRes.data));
+        setCampaignOptions(asList(cRes.data));
       } catch (err) {
         if (mounted) setError("Failed to load form options. " + (err.message || ""));
       }
@@ -86,6 +91,8 @@ export default function ReservationForm({ mode = "create" }) {
           special_requests: d.special_requests || "",
           notes: d.notes || "",
           status: d.status || "PENDING",
+          booking_source: d.booking_source || "DIRECT",
+          marketing_campaign: d.marketing_campaign || "",
         });
       } catch (err) {
         if (!mounted) return;
@@ -130,6 +137,8 @@ export default function ReservationForm({ mode = "create" }) {
           const g = guestOptions.find((x) => String(x.id) === String(s.guest));
           if (g && String(g.hotel) !== String(value)) next.guest = "";
         }
+        const campaign = campaignOptions.find((item) => String(item.id) === String(s.marketing_campaign));
+        if (campaign && String(campaign.hotel) !== String(value)) next.marketing_campaign = "";
       }
 
       if (name === "room") {
@@ -233,6 +242,8 @@ export default function ReservationForm({ mode = "create" }) {
         special_requests: form.special_requests,
         notes: form.notes,
         status: mode === "create" ? "PENDING" : form.status,
+        booking_source: form.booking_source,
+        marketing_campaign: form.marketing_campaign ? Number(form.marketing_campaign) : null,
       };
 
       let res;
@@ -334,6 +345,30 @@ export default function ReservationForm({ mode = "create" }) {
               <span>Check-out date</span>
               <input type="date" name="check_out_date" value={form.check_out_date} onChange={handleChange} />
               <FieldError errors={fieldErrors.check_out_date} />
+            </label>
+
+            <label className="res-field">
+              <span>Booking source</span>
+              <select name="booking_source" value={form.booking_source} onChange={handleChange}>
+                <option value="DIRECT">Direct</option>
+                <option value="PHONE">Phone</option>
+                <option value="OTA">Online travel agency</option>
+                <option value="WALK_IN">Walk-in</option>
+                <option value="CORPORATE">Corporate</option>
+                <option value="OTHER">Other</option>
+              </select>
+              <FieldError errors={fieldErrors.booking_source} />
+            </label>
+
+            <label className="res-field">
+              <span>Marketing campaign</span>
+              <select name="marketing_campaign" value={form.marketing_campaign} onChange={handleChange}>
+                <option value="">No campaign</option>
+                {campaignOptions.filter((campaign) => !form.hotel || String(campaign.hotel) === String(form.hotel)).map((campaign) => (
+                  <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                ))}
+              </select>
+              <FieldError errors={fieldErrors.marketing_campaign} />
             </label>
 
             <label className="res-field">

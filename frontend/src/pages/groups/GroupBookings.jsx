@@ -64,6 +64,7 @@ export default function GroupBookings() {
                 <th>Name</th>
                 <th>Contact</th>
                 <th>Group size</th>
+                <th>Linked reservations</th>
                 <th>Dates</th>
                 <th>Status</th>
               </tr>
@@ -85,6 +86,7 @@ export default function GroupBookings() {
                   <td data-label="Name">{group.name}</td>
                   <td data-label="Contact">{group.contact_name || "—"}<br />{group.contact_phone || ""}</td>
                   <td data-label="Group size">{group.group_size}</td>
+                  <td data-label="Linked reservations">{group.reservations?.length || 0}</td>
                   <td data-label="Dates">{formatDate(group.start_date)} – {formatDate(group.end_date)}</td>
                   <td data-label="Status">{group.status}</td>
                 </tr>

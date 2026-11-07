@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -8,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.accounts.models import StaffMembership
+from apps.reservations.models import Reservation
 from apps.operations.models import (
     CashDrawerEntry,
     CashDrawerShift,
@@ -185,6 +187,31 @@ class MarketingCampaignViewSet(HotelScopedViewMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def performance(self, request):
+        active_reservations = Reservation.objects.exclude(
+            status__in=[Reservation.Status.CANCELLED, Reservation.Status.NO_SHOW]
+        )
+        campaigns = self.get_queryset().annotate(
+            bookings=Count("reservations", filter=~Q(
+                reservations__status__in=[
+                    Reservation.Status.CANCELLED,
+                    Reservation.Status.NO_SHOW,
+                ]
+            ))
+        ).values("id", "name", "channel", "bookings")
+        hotel_ids = self.get_hotel_queryset(self.queryset).values_list("hotel_id", flat=True)
+        source_counts = {
+            row["booking_source"]: row["bookings"]
+            for row in active_reservations.filter(hotel_id__in=hotel_ids).values(
+                "booking_source"
+            ).annotate(bookings=Count("id"))
+        }
+        return Response({
+            "campaigns": list(campaigns),
+            "source_counts": source_counts,
+        })
 
 
 class GuestFeedbackViewSet(HotelScopedViewMixin, viewsets.ModelViewSet):

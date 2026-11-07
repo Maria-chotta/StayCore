@@ -11,6 +11,8 @@ from .models import Reservation
 from .serializers import ReservationSerializer
 from apps.rooms.models import Room
 from apps.accounts.models import StaffMembership
+from apps.accounting.services import ensure_business_day_open, hotel_local_date
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class ReservationViewSet(viewsets.ModelViewSet):
@@ -30,6 +32,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
             })
 
         room = reservation.room
+        try:
+            ensure_business_day_open(reservation.hotel, hotel_local_date(reservation.hotel))
+        except DjangoValidationError as exc:
+            raise ValidationError(exc.message_dict) from exc
 
         if room is None:
             raise ValidationError({
@@ -78,6 +84,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def _do_check_out(self, reservation, user):
+        try:
+            ensure_business_day_open(reservation.hotel, hotel_local_date(reservation.hotel))
+        except DjangoValidationError as exc:
+            raise ValidationError(exc.message_dict) from exc
         if reservation.status != Reservation.Status.CHECKED_IN:
             raise ValidationError({
                 "status": "Only checked-in reservations can be checked out."
@@ -104,6 +114,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def _do_confirm(self, reservation):
+        try:
+            ensure_business_day_open(reservation.hotel, hotel_local_date(reservation.hotel))
+        except DjangoValidationError as exc:
+            raise ValidationError(exc.message_dict) from exc
         if reservation.status != Reservation.Status.PENDING:
             raise ValidationError({
                 "status": "Only pending reservations can be confirmed."
@@ -116,6 +130,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def _do_cancel(self, reservation):
+        try:
+            ensure_business_day_open(reservation.hotel, hotel_local_date(reservation.hotel))
+        except DjangoValidationError as exc:
+            raise ValidationError(exc.message_dict) from exc
         if reservation.status not in (
             Reservation.Status.PENDING,
             Reservation.Status.CONFIRMED,
@@ -146,6 +164,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             "guest",
             "room",
             "room__room_type",
+            "marketing_campaign",
             "checked_in_by",
             "checked_out_by",
             "folio",
@@ -270,4 +289,3 @@ class ReservationViewSet(viewsets.ModelViewSet):
         reservation = self.get_object()
         self._do_cancel(reservation)
         return Response(self.get_serializer(reservation).data)
-

@@ -8,6 +8,9 @@ const initialForm = {
   description: "",
   rate_type: "SPECIAL",
   price: "",
+  meal_plan: "ROOM_ONLY",
+  cancellation_deadline_hours: 24,
+  cancellation_fee_percent: "0",
   start_date: "",
   end_date: "",
   is_active: true,
@@ -31,6 +34,9 @@ export default function RatePlanForm({ mode = "create" }) {
           description: response.data.description || "",
           rate_type: response.data.rate_type || "SPECIAL",
           price: response.data.price ?? "",
+          meal_plan: response.data.meal_plan || "ROOM_ONLY",
+          cancellation_deadline_hours: response.data.cancellation_deadline_hours ?? 24,
+          cancellation_fee_percent: response.data.cancellation_fee_percent ?? "0",
           start_date: response.data.start_date || "",
           end_date: response.data.end_date || "",
           is_active: response.data.is_active ?? true,
@@ -55,9 +61,12 @@ export default function RatePlanForm({ mode = "create" }) {
     setSubmitting(true);
     const payload = {
       ...form,
+      hotel: Number(localStorage.getItem("active_hotel_id") || 0),
       name: form.name.trim(),
       description: form.description.trim(),
       price: Number(form.price),
+      cancellation_deadline_hours: Number(form.cancellation_deadline_hours),
+      cancellation_fee_percent: Number(form.cancellation_fee_percent),
     };
 
     try {
@@ -99,6 +108,15 @@ export default function RatePlanForm({ mode = "create" }) {
                 <option value="CORPORATE">Corporate</option>
               </select></label>
               <label className="form-field">Price<input type="number" min="0" step="0.01" value={form.price} disabled={submitting} onChange={(event) => setForm({ ...form, price: event.target.value })} required /></label>
+              <label className="form-field">Meal plan<select value={form.meal_plan} disabled={submitting} onChange={(event) => setForm({ ...form, meal_plan: event.target.value })}>
+                <option value="ROOM_ONLY">Room only</option>
+                <option value="BREAKFAST">Breakfast included</option>
+                <option value="HALF_BOARD">Half board</option>
+                <option value="FULL_BOARD">Full board</option>
+                <option value="ALL_INCLUSIVE">All inclusive</option>
+              </select></label>
+              <label className="form-field">Free cancellation until (hours)<input type="number" min="0" step="1" value={form.cancellation_deadline_hours} disabled={submitting} onChange={(event) => setForm({ ...form, cancellation_deadline_hours: event.target.value })} required /></label>
+              <label className="form-field">Cancellation fee after deadline (%)<input type="number" min="0" max="100" step="0.01" value={form.cancellation_fee_percent} disabled={submitting} onChange={(event) => setForm({ ...form, cancellation_fee_percent: event.target.value })} required /></label>
               <label className="form-field">Start date<input type="date" value={form.start_date} disabled={submitting} onChange={(event) => setForm({ ...form, start_date: event.target.value })} required /></label>
               <label className="form-field">End date<input type="date" value={form.end_date} disabled={submitting} onChange={(event) => setForm({ ...form, end_date: event.target.value })} required /></label>
               <label className="form-field form-field-wide">Description <small>Optional</small><textarea value={form.description} disabled={submitting} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} /></label>

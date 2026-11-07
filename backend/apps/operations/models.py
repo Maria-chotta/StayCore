@@ -1,5 +1,7 @@
+from decimal import Decimal
+
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -103,6 +105,13 @@ class MarketingCampaign(models.Model):
     hotel = models.ForeignKey("hotels.Hotel", on_delete=models.CASCADE, related_name="marketing_campaigns")
     name = models.CharField(max_length=150)
     channel = models.CharField(max_length=80, blank=True)
+    offer_code = models.CharField(max_length=30, blank=True)
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("100.00"))],
+    )
     budget = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     starts_on = models.DateField(null=True, blank=True)
     ends_on = models.DateField(null=True, blank=True)

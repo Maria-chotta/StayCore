@@ -23,9 +23,11 @@ const sections = [
     { path: "/room-types", label: "Room Types", icon: Building2, roles: ["OWNER", "MANAGER"] },
     { path: "/groups", label: "Groups", icon: Users, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
     { path: "/event-packages", label: "Event Packages", icon: Building2, roles: ["OWNER", "MANAGER"] },
+    { path: "/events", label: "Events", icon: ClipboardList, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
     { path: "/rate-plans", label: "Rate Plans", icon: BarChart3, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
     { path: "/guests", label: "Guests", icon: Users, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
     { path: "/calendar", label: "Calendar", icon: BarChart3, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
+    { path: "/availability", label: "Availability Matrix", icon: BedDouble, roles: ["OWNER", "MANAGER", "RECEPTIONIST"] },
     { path: "/cash-drawer", label: "Cash Drawer", icon: FileBarChart, roles: ["OWNER", "MANAGER", "RECEPTIONIST", "ACCOUNTANT"] },
     { path: "/inventory", label: "Inventory", icon: BedDouble, roles: ["OWNER", "MANAGER", "HOUSEKEEPER", "ACCOUNTANT"] },
     { path: "/production", label: "Production", icon: ClipboardList, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
@@ -38,10 +40,14 @@ const sections = [
     { path: "/maintenance", label: "Maintenance", icon: Wrench, roles: ["OWNER", "MANAGER", "MAINTENANCE"] },
   ]},
   { label: "Finance", links: [
+    { path: "/house-accounts", label: "House Accounts", icon: FileBarChart, roles: ["OWNER", "MANAGER", "ACCOUNTANT", "RECEPTIONIST"] },
+    { path: "/close-calendar", label: "Close Calendar", icon: FileBarChart, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
+    { path: "/accounting", label: "Accounting", icon: FileBarChart, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
     { path: "/billing", label: "Billing", icon: FileBarChart, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
     { path: "/reports", label: "Reports", icon: FileBarChart, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
   ]},
   { label: "Management", links: [
+    { path: "/utilities", label: "Utilities", icon: Wrench, roles: ["OWNER", "MANAGER", "ACCOUNTANT"] },
     { path: "/staff", label: "Staff", icon: Users, roles: ["OWNER", "MANAGER"] },
   ]},
 ];

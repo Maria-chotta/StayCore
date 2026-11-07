@@ -6,6 +6,7 @@ from .views import (
     RatePlanViewSet,
     RoomViewSet,
     RoomTypeViewSet,
+    ScheduledEventViewSet,
 )
 
 
@@ -21,6 +22,12 @@ router.register(
     "event-packages",
     EventPackageViewSet,
     basename="event-packages",
+)
+
+router.register(
+    "events",
+    ScheduledEventViewSet,
+    basename="events",
 )
 
 router.register(

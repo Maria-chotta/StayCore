@@ -21,26 +21,37 @@ export default function GroupBookingForm({ mode = "create" }) {
   const [loading, setLoading] = useState(mode === "edit");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [reservations, setReservations] = useState([]);
+  const [selectedReservationIds, setSelectedReservationIds] = useState([]);
 
   useEffect(() => {
-    if (mode !== "edit") return;
     Promise.resolve().then(async () => {
       try {
-        const response = await api.get(`/groups/${id}/`);
-        setForm({
-          name: response.data.name || "",
-          contact_name: response.data.contact_name || "",
-          contact_phone: response.data.contact_phone || "",
-          group_size: response.data.group_size ?? 1,
-          start_date: response.data.start_date || "",
-          end_date: response.data.end_date || "",
-          status: response.data.status || "PENDING",
-          notes: response.data.notes || "",
-        });
+        const reservationRequest = api.get("/reservations/");
+        if (mode === "edit") {
+          const [response, reservationResponse] = await Promise.all([api.get(`/groups/${id}/`), reservationRequest]);
+          setForm({
+            name: response.data.name || "",
+            contact_name: response.data.contact_name || "",
+            contact_phone: response.data.contact_phone || "",
+            group_size: response.data.group_size ?? 1,
+            start_date: response.data.start_date || "",
+            end_date: response.data.end_date || "",
+            status: response.data.status || "PENDING",
+            notes: response.data.notes || "",
+          });
+          setSelectedReservationIds((response.data.reservations || []).map((reservation) => reservation.id));
+          const data = reservationResponse.data;
+          setReservations(Array.isArray(data) ? data : data.results || []);
+        } else {
+          const response = await reservationRequest;
+          const data = response.data;
+          setReservations(Array.isArray(data) ? data : data.results || []);
+        }
       } catch (err) {
         setError(err.response?.data || err.message || "Failed to load group booking.");
       } finally {
-        setLoading(false);
+        if (mode === "edit") setLoading(false);
       }
     });
   }, [id, mode]);
@@ -57,10 +68,12 @@ export default function GroupBookingForm({ mode = "create" }) {
     setSubmitting(true);
     const payload = {
       ...form,
+      hotel: Number(localStorage.getItem("active_hotel_id") || 0),
       name: form.name.trim(),
       contact_name: form.contact_name.trim(),
       contact_phone: form.contact_phone.trim(),
       group_size: Number(form.group_size),
+      reservation_ids: selectedReservationIds,
     };
 
     try {
@@ -99,6 +112,19 @@ export default function GroupBookingForm({ mode = "create" }) {
               <label className="form-field">Contact phone<input type="tel" value={form.contact_phone} disabled={submitting} onChange={(event) => setForm({ ...form, contact_phone: event.target.value })} /></label>
               <label className="form-field">Group size<input type="number" min="1" value={form.group_size} disabled={submitting} onChange={(event) => setForm({ ...form, group_size: event.target.value })} /></label>
             </div>
+          </fieldset>
+          <fieldset className="form-section">
+            <legend>Linked reservations</legend>
+            <p>Select individual reservations included in this group.</p>
+            {reservations.length === 0 ? <p>No reservations are available for the active property.</p> : (
+              <div className="form-section-grid">
+                {reservations.map((reservation) => <label className="form-field" key={reservation.id}>
+                  <span><input type="checkbox" checked={selectedReservationIds.includes(reservation.id)} disabled={submitting} onChange={(event) => setSelectedReservationIds((current) => event.target.checked ? [...current, reservation.id] : current.filter((selectedId) => selectedId !== reservation.id))} />{" "}
+                    #{reservation.id} · {reservation.guest_details ? `${reservation.guest_details.first_name} ${reservation.guest_details.last_name}` : `Guest #${reservation.guest}`} · {reservation.check_in_date} – {reservation.check_out_date}
+                  </span>
+                </label>)}
+              </div>
+            )}
           </fieldset>
           <fieldset className="form-section">
             <legend>Stay details</legend>

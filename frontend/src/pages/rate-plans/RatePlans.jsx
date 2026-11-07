@@ -62,6 +62,8 @@ export default function RatePlans() {
                 <th>Name</th>
                 <th>Type</th>
                 <th>Price</th>
+                <th>Meal plan</th>
+                <th>Cancellation</th>
                 <th>Dates</th>
                 <th>Status</th>
               </tr>
@@ -77,6 +79,8 @@ export default function RatePlans() {
                   <td data-label="Name">{rate.name}</td>
                   <td data-label="Type">{rate.rate_type}</td>
                   <td data-label="Price">{Number(rate.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td data-label="Meal plan">{(rate.meal_plan || "ROOM_ONLY").replaceAll("_", " ")}</td>
+                  <td data-label="Cancellation">{rate.cancellation_deadline_hours}h free · {rate.cancellation_fee_percent}% fee</td>
                   <td data-label="Dates">{formatDate(rate.start_date)} – {formatDate(rate.end_date)}</td>
                   <td data-label="Status">{rate.is_active ? "Active" : "Inactive"}</td>
                 </tr>

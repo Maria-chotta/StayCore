@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../services/api";
 
 const asList = (data) => (Array.isArray(data) ? data : data?.results || []);
@@ -8,6 +8,8 @@ const emptyCampaign = () => ({
   hotel: Number(localStorage.getItem("active_hotel_id") || ""),
   name: "",
   channel: "",
+  offer_code: "",
+  discount_percent: "0",
   budget: "",
   starts_on: "",
   ends_on: "",
@@ -17,26 +19,33 @@ const emptyCampaign = () => ({
 
 export default function Marketing() {
   const [campaigns, setCampaigns] = useState([]);
+  const [campaignBookings, setCampaignBookings] = useState([]);
+  const [sourceCounts, setSourceCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyCampaign());
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-      const res = await api.get("/marketing-campaigns/");
-      setCampaigns(asList(res.data));
+      const [campaignResponse, performanceResponse] = await Promise.all([
+        api.get("/marketing-campaigns/"),
+        api.get("/marketing-campaigns/performance/"),
+      ]);
+      setCampaigns(asList(campaignResponse.data));
+      setCampaignBookings(performanceResponse.data.campaigns || []);
+      setSourceCounts(performanceResponse.data.source_counts || {});
     } catch (err) {
       setError(err.response?.data || err.message || "Failed to load campaigns.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { Promise.resolve().then(load); }, [load]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -79,6 +88,8 @@ export default function Marketing() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
             <label style={{ display: "grid", gap: 6 }}>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
             <label style={{ display: "grid", gap: 6 }}>Channel<input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} /></label>
+            <label style={{ display: "grid", gap: 6 }}>Offer code<input value={form.offer_code} onChange={(e) => setForm({ ...form, offer_code: e.target.value })} /></label>
+            <label style={{ display: "grid", gap: 6 }}>Discount (%)<input type="number" min="0" max="100" step="0.01" value={form.discount_percent} onChange={(e) => setForm({ ...form, discount_percent: e.target.value })} /></label>
             <label style={{ display: "grid", gap: 6 }}>Budget<input type="number" min="0" step="0.01" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} /></label>
             <label style={{ display: "grid", gap: 6 }}>Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="PLANNED">Planned</option>
@@ -98,12 +109,42 @@ export default function Marketing() {
       )}
 
       {loading ? <div>Loading campaigns…</div> : (
-        <div style={{ background: "#fff", border: "1px solid #e6ebe8", borderRadius: 14, padding: 16 }}>
+        <div style={{ display: "grid", gap: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #e6ebe8", borderRadius: 14, padding: 16 }}>
+            <h2>Campaign-attributed bookings</h2>
+            <p>Counts reflect reservations linked to each campaign.</p>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>
+                <th style={{ textAlign: "left", padding: 10 }}>Campaign</th>
+                <th style={{ textAlign: "left", padding: 10 }}>Channel</th>
+                <th style={{ textAlign: "left", padding: 10 }}>Attributed bookings</th>
+              </tr></thead>
+              <tbody>{campaignBookings.map((campaign) => (
+                <tr key={campaign.id}>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.name}</td>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.channel || "—"}</td>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.bookings}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+            <h3>Bookings by source</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr><th style={{ textAlign: "left", padding: 10 }}>Source</th><th style={{ textAlign: "left", padding: 10 }}>Bookings</th></tr></thead>
+              <tbody>{["DIRECT", "PHONE", "OTA", "WALK_IN", "CORPORATE", "OTHER"].map((source) => (
+                <tr key={source}>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{source.replaceAll("_", " ")}</td>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{sourceCounts[source] || 0}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+          <div style={{ background: "#fff", border: "1px solid #e6ebe8", borderRadius: 14, padding: 16 }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
                 <th style={{ textAlign: "left", padding: 10 }}>Campaign</th>
                 <th style={{ textAlign: "left", padding: 10 }}>Channel</th>
+                <th style={{ textAlign: "left", padding: 10 }}>Offer</th>
                 <th style={{ textAlign: "left", padding: 10 }}>Budget</th>
                 <th style={{ textAlign: "left", padding: 10 }}>Dates</th>
                 <th style={{ textAlign: "left", padding: 10 }}>Status</th>
@@ -114,6 +155,7 @@ export default function Marketing() {
                 <tr key={campaign.id}>
                   <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.name}</td>
                   <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.channel || "—"}</td>
+                  <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.offer_code || "—"} {Number(campaign.discount_percent) > 0 ? `(${campaign.discount_percent}% off)` : ""}</td>
                   <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{money(campaign.budget)}</td>
                   <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.starts_on || "—"} to {campaign.ends_on || "—"}</td>
                   <td style={{ padding: 10, borderTop: "1px solid #edf1ef" }}>{campaign.status}</td>
@@ -121,6 +163,7 @@ export default function Marketing() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

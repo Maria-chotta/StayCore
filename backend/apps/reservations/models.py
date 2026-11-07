@@ -4,6 +4,14 @@ from django.core.exceptions import ValidationError
 
 class Reservation(models.Model):
 
+    class BookingSource(models.TextChoices):
+        DIRECT = "DIRECT", "Direct"
+        PHONE = "PHONE", "Phone"
+        OTA = "OTA", "Online travel agency"
+        WALK_IN = "WALK_IN", "Walk-in"
+        CORPORATE = "CORPORATE", "Corporate"
+        OTHER = "OTHER", "Other"
+
     class Status(models.TextChoices):
         PENDING = "PENDING", "Pending"
         CONFIRMED = "CONFIRMED", "Confirmed"
@@ -28,6 +36,20 @@ class Reservation(models.Model):
         "rooms.Room",
         on_delete=models.PROTECT,
         related_name="reservations"
+    )
+
+    booking_source = models.CharField(
+        max_length=20,
+        choices=BookingSource.choices,
+        default=BookingSource.DIRECT,
+    )
+
+    marketing_campaign = models.ForeignKey(
+        "operations.MarketingCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reservations",
     )
 
     check_in_date = models.DateField()

@@ -1,6 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
+from zoneinfo import ZoneInfo
 
 from .models import Folio, FolioItem, Payment
 from .serializers import (
@@ -11,6 +14,7 @@ from .serializers import (
 
 
 from apps.accounts.models import StaffMembership
+from apps.accounting.services import ensure_business_day_open, hotel_local_date
 
 
 class FolioViewSet(viewsets.ModelViewSet):
@@ -76,6 +80,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        hotel = serializer.validated_data["folio"].hotel
+        try:
+            ensure_business_day_open(hotel, hotel_local_date(hotel))
+        except DjangoValidationError as exc:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(exc.message_dict) from exc
         payment = serializer.save(
             received_by=self.request.user
         )
@@ -93,3 +103,24 @@ class PaymentViewSet(viewsets.ModelViewSet):
             folio.save(
                 update_fields=["status", "updated_at"]
             )
+
+    def perform_update(self, serializer):
+        payment = self.get_object()
+        hotel = payment.folio.hotel
+        paid_date = timezone.localtime(payment.paid_at, ZoneInfo(hotel.timezone)).date()
+        try:
+            ensure_business_day_open(hotel, paid_date)
+        except DjangoValidationError as exc:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(exc.message_dict) from exc
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        hotel = instance.folio.hotel
+        paid_date = timezone.localtime(instance.paid_at, ZoneInfo(hotel.timezone)).date()
+        try:
+            ensure_business_day_open(hotel, paid_date)
+        except DjangoValidationError as exc:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(exc.message_dict) from exc
+        instance.delete()

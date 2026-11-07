@@ -1,9 +1,12 @@
 import axios from "axios";
 
 const AUTH_URLS = ["/auth/login/", "/auth/refresh/"];
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api"
+).replace(/\/+$/, "");
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -72,7 +75,7 @@ api.interceptors.response.use(
     try {
       refreshing =
         refreshing ||
-        axios.post("http://127.0.0.1:8000/api/auth/refresh/", {
+        axios.post(`${API_BASE_URL}/auth/refresh/`, {
           refresh,
         });
 

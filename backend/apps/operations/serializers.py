@@ -3,6 +3,8 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from apps.accounts.models import StaffMembership
+from apps.accounting.services import ensure_business_day_open, hotel_local_date
+from django.core.exceptions import ValidationError as DjangoValidationError
 from apps.operations.models import (
     CashDrawerEntry,
     CashDrawerShift,
@@ -48,6 +50,13 @@ class CashDrawerShiftSerializer(serializers.ModelSerializer):
             user = self.context["request"].user
             if not StaffMembership.objects.filter(user=user, hotel=hotel, is_active=True).exists():
                 raise serializers.ValidationError({"hotel": "You do not have access to this hotel."})
+        if self.instance and self.instance.status == CashDrawerShift.Status.CLOSED:
+            raise serializers.ValidationError({"status": "Closed drawer shifts cannot be changed."})
+        if hotel and not self.instance:
+            try:
+                ensure_business_day_open(hotel, hotel_local_date(hotel))
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict) from exc
         return attrs
 
 
@@ -69,6 +78,15 @@ class CashDrawerEntrySerializer(serializers.ModelSerializer):
         shift = attrs.get("shift", getattr(self.instance, "shift", None))
         if shift and shift.status == CashDrawerShift.Status.CLOSED:
             raise serializers.ValidationError({"shift": "This drawer shift is already closed."})
+        if shift and self.context.get("request"):
+            user = self.context["request"].user
+            if not StaffMembership.objects.filter(user=user, hotel=shift.hotel, is_active=True).exists():
+                raise serializers.ValidationError({"shift": "This drawer shift does not belong to a hotel you can access."})
+            business_date = hotel_local_date(shift.hotel)
+            try:
+                ensure_business_day_open(shift.hotel, business_date)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict) from exc
         return attrs
 
 
@@ -187,6 +205,8 @@ class MarketingCampaignSerializer(serializers.ModelSerializer):
             "hotel",
             "name",
             "channel",
+            "offer_code",
+            "discount_percent",
             "budget",
             "starts_on",
             "ends_on",

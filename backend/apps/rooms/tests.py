@@ -1,10 +1,15 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import StaffMembership
+from apps.guests.models import Guest
 from apps.hotels.models import Hotel
-from apps.rooms.models import EventPackage, GroupBooking, RatePlan, Room, RoomType
+from apps.reservations.models import Reservation
+from apps.operations.models import MarketingCampaign
+from apps.rooms.models import EventPackage, GroupBooking, RatePlan, Room, RoomType, ScheduledEvent
 
 
 class GroupEventRateModelTests(TestCase):
@@ -60,6 +65,179 @@ class GroupEventRateModelTests(TestCase):
         self.assertEqual(group.hotel, self.hotel)
         self.assertEqual(package.hotel, self.hotel)
         self.assertEqual(rate.hotel, self.hotel)
+
+    def test_rate_plan_api_persists_meal_plan_and_cancellation_terms(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        response = client.post(
+            "/api/rate-plans/",
+            {
+                "hotel": self.hotel.id,
+                "name": "Breakfast Flex",
+                "rate_type": RatePlan.Type.SPECIAL,
+                "price": "175000.00",
+                "meal_plan": RatePlan.MealPlan.BREAKFAST,
+                "cancellation_deadline_hours": 48,
+                "cancellation_fee_percent": "25.00",
+                "start_date": "2026-10-01",
+                "end_date": "2026-10-31",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["meal_plan"], RatePlan.MealPlan.BREAKFAST)
+        self.assertEqual(response.data["cancellation_deadline_hours"], 48)
+        self.assertEqual(response.data["cancellation_fee_percent"], "25.00")
+
+    def test_group_api_links_same_hotel_reservations(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        room_type = RoomType.objects.create(name="Standard", base_price="100000.00")
+        room = Room.objects.create(hotel=self.hotel, room_type=room_type, room_number="201")
+        guest = Guest.objects.create(hotel=self.hotel, first_name="Asha", last_name="Mushi")
+        reservation = Reservation.objects.create(
+            hotel=self.hotel,
+            guest=guest,
+            room=room,
+            check_in_date="2026-10-02",
+            check_out_date="2026-10-04",
+        )
+
+        response = client.post(
+            "/api/groups/",
+            {
+                "hotel": self.hotel.id,
+                "name": "October Group",
+                "contact_name": "Asha",
+                "group_size": 1,
+                "start_date": "2026-10-01",
+                "end_date": "2026-10-05",
+                "reservation_ids": [reservation.id],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual([item["id"] for item in response.data["reservations"]], [reservation.id])
+        self.assertEqual(reservation.group_bookings.get().id, response.data["id"])
+
+    def test_group_api_rejects_reservations_from_another_hotel(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        other_hotel = Hotel.objects.create(
+            name="Other Hotel",
+            address="45 Side St",
+            city="Dodoma",
+            country="Tanzania",
+        )
+        room_type = RoomType.objects.create(name="Standard", base_price="100000.00")
+        room = Room.objects.create(hotel=other_hotel, room_type=room_type, room_number="202")
+        guest = Guest.objects.create(hotel=other_hotel, first_name="Juma", last_name="Mushi")
+        reservation = Reservation.objects.create(
+            hotel=other_hotel,
+            guest=guest,
+            room=room,
+            check_in_date="2026-10-02",
+            check_out_date="2026-10-04",
+        )
+
+        response = client.post(
+            "/api/groups/",
+            {
+                "hotel": self.hotel.id,
+                "name": "October Group",
+                "contact_name": "Asha",
+                "group_size": 1,
+                "start_date": "2026-10-01",
+                "end_date": "2026-10-05",
+                "reservation_ids": [reservation.id],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertIn("reservation_ids", response.data)
+
+    def test_scheduled_event_api_saves_participants_and_charges(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        package = EventPackage.objects.create(
+            hotel=self.hotel,
+            name="Conference package",
+            price="50000.00",
+        )
+
+        response = client.post(
+            "/api/events/",
+            {
+                "hotel": self.hotel.id,
+                "package": package.id,
+                "name": "Annual Meeting",
+                "venue": "Conference Room A",
+                "start_at": "2026-10-01T10:00:00Z",
+                "end_at": "2026-10-01T12:00:00Z",
+                "status": ScheduledEvent.Status.CONFIRMED,
+                "participants": [
+                    {
+                        "name": "Asha Mushi",
+                        "email": "asha@example.com",
+                        "phone": "+255700000001",
+                        "status": "CONFIRMED",
+                    }
+                ],
+                "charges": [
+                    {"description": "Room hire", "quantity": 2, "unit_price": "125000.00"},
+                    {"description": "Refreshments", "quantity": 1, "unit_price": "25000.00"},
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(len(response.data["participants"]), 1)
+        self.assertEqual(len(response.data["charges"]), 2)
+        self.assertEqual(response.data["charge_total"], Decimal("275000.00"))
+        self.assertEqual(
+            ScheduledEvent.objects.get(pk=response.data["id"]).participants.count(),
+            1,
+        )
+
+    def test_reservation_campaign_attribution_is_reported(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        campaign = MarketingCampaign.objects.create(
+            hotel=self.hotel,
+            name="Spring Direct",
+            channel="Website",
+            status=MarketingCampaign.Status.ACTIVE,
+            created_by=self.user,
+        )
+        room_type = RoomType.objects.create(name="Standard", base_price="100000.00")
+        room = Room.objects.create(hotel=self.hotel, room_type=room_type, room_number="301")
+        guest = Guest.objects.create(hotel=self.hotel, first_name="Mariam", last_name="Kweka")
+
+        reservation_response = client.post(
+            "/api/reservations/",
+            {
+                "hotel": self.hotel.id,
+                "guest": guest.id,
+                "room": room.id,
+                "check_in_date": "2027-02-01",
+                "check_out_date": "2027-02-03",
+                "booking_source": Reservation.BookingSource.DIRECT,
+                "marketing_campaign": campaign.id,
+            },
+            format="json",
+        )
+        self.assertEqual(reservation_response.status_code, 201, reservation_response.data)
+        self.assertEqual(reservation_response.data["marketing_campaign"], campaign.id)
+
+        report_response = client.get("/api/marketing-campaigns/performance/")
+        self.assertEqual(report_response.status_code, 200, report_response.data)
+        self.assertEqual(report_response.data["campaigns"][0]["bookings"], 1)
+        self.assertEqual(report_response.data["source_counts"]["DIRECT"], 1)
 
 
 class RoomSummaryEndpointTests(TestCase):
