@@ -80,8 +80,8 @@ function Login() {
         <span className="login-aside-mark">01 / HOTEL OPERATIONS</span>
         <img
           className="login-aside-image"
-          src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1500&q=92"
-          alt="Hotel reception ready to welcome guests"
+          src="/assets/login-hotel-operations.svg"
+          alt="Illustration of a hotel reception with a live operations dashboard"
         />
         <h2>Every shift,<br />one clear view.</h2>
         <p>Reservations, rooms, guests, and daily operations connected in one calm workspace.</p>
