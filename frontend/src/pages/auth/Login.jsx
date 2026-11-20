@@ -77,11 +77,11 @@ function Login() {
         <p className="login-footer">Secure access for authorized StayCore teams.</p>
       </section>
       <aside className="login-aside">
-        <span className="login-aside-mark">01 / HOTEL OPERATIONS</span>
+        <span className="login-aside-mark">01</span>
         <img
           className="login-aside-image"
           src="/assets/login-hotel-operations.svg"
-          alt="Illustration of a hotel reception with a live operations dashboard"
+          alt="Illustrated luxury hotel with a landscaped swimming pool at sunset"
         />
         <h2>Every shift,<br />one clear view.</h2>
         <p>Reservations, rooms, guests, and daily operations connected in one calm workspace.</p>
