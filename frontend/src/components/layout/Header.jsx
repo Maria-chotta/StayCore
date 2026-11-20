@@ -10,7 +10,7 @@ export default function Header() {
         <nav className="nav">
           <a href="#platform">Platform</a><a href="#operations">Operations</a><a href="#about">Why StayCore</a>
           <Link to="/login" className="cta small">Sign in</Link>
-          <a href="#demo" className="cta primary">Get started →</a>
+          <Link to="/login" className="cta primary">Get started →</Link>
         </nav>
       </div>
     </header>

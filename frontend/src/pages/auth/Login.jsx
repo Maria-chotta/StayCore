@@ -76,7 +76,16 @@ function Login() {
         </form>
         <p className="login-footer">Secure access for authorized StayCore teams.</p>
       </section>
-      <aside className="login-aside"><span className="login-aside-mark">01</span><h2>Every shift,<br />one clear view.</h2><p>Reservations, rooms, guests, and daily operations connected in one calm workspace.</p></aside>
+      <aside className="login-aside">
+        <span className="login-aside-mark">01 / HOTEL OPERATIONS</span>
+        <img
+          className="login-aside-image"
+          src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1500&q=92"
+          alt="Hotel reception ready to welcome guests"
+        />
+        <h2>Every shift,<br />one clear view.</h2>
+        <p>Reservations, rooms, guests, and daily operations connected in one calm workspace.</p>
+      </aside>
     </main>
   );
 }
